@@ -177,6 +177,33 @@ def draw_bounding_box_on_image(image,
         font=font)
     text_bottom -= text_height - 2 * margin
 
+def get_image_from_bounding_box(image,
+                                boxes,
+                                classes,
+                                scores,
+                                category_index,
+                                use_normalized_coordinates=False,
+                                min_score_thresh=.6):
+  faces = []
+  
+  for b in range(0, len(boxes)):
+    if scores[b] > min_score_thresh:
+      ymin, xmin, ymax, xmax = boxes[b]
+
+      image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
+      im_width, im_height = image_pil.size
+
+      if use_normalized_coordinates:
+        (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
+                                      ymin * im_height, ymax * im_height)
+      else:
+        (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
+
+      # print(" ", left, right, top, bottom)
+
+      faces.append(image[int(top):int(bottom), int(left):int(right)])
+
+  return faces
 
 def draw_bounding_boxes_on_image_array(image,
                                        boxes,
@@ -373,6 +400,7 @@ def visualize_boxes_and_labels_on_image_array(image,
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
+      print(box)
       if instance_masks is not None:
         box_to_instance_masks_map[box] = instance_masks[i]
       if keypoints is not None:

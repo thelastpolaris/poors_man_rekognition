@@ -3,8 +3,14 @@ import os, sys
 from rekognition.pipeline.pipeline import Pipeline
 
 # Import pipeline elements
-from rekognition.pipeline.handle_video import HandleVideoElem
+# Data Handlers
+from rekognition.pipeline.video_handler import VideoHandlerElem
+from rekognition.pipeline.image_handler import ImageHandlerElem
+
+# Computer Vision
 from rekognition.pipeline.mobilenets_ssd import MobileNetsSSDFaceDetector
+
+# Output
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -20,11 +26,14 @@ if os.path.isfile(args["input"]) != True:
 p = Pipeline()
 
 # create first element to handle video
-video = HandleVideoElem()
+image = ImageHandlerElem()
+# video = VideoHandlerElem()
 face_detector = MobileNetsSSDFaceDetector()
+# face_recognition = 
 
-p.add_element(video, args["input"])
-p.add_element(face_detector, video)
+p.add_element(image, args["input"])
+# p.add_element(video, args["input"])
+p.add_element(face_detector, image)
 
 # Print the pipeline
 print(p)

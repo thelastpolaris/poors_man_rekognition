@@ -3,6 +3,7 @@ import tensorflow as tf
 import sys, os
 import time
 import cv2
+import av
 from progress.bar import Bar
 
 absFilePath = os.path.abspath(__file__)
@@ -49,11 +50,20 @@ class MobileNetsSSDFaceDetector(PipelineElement):
 	def run(self, input_data):
 		sess = tf.Session(graph=self.__detection_graph, config=self.__config)
 
-		print("Detecting faces in video")
-		bar = Bar('Processing', max = len(input_data))
-		out = None
+		faces = []
 
-		for image in input_data:
+		print("Detecting faces in video")
+		bar = Bar('Processing', max = input_data[1])
+		out = None
+		i = 0
+
+		data = input_data[0]
+		if type(data) != list:
+			data = [data]
+
+		for frame in data:
+			# image = frame.to_rgb().to_ndarray()
+			image = frame
 			if out is None:
 				[h, w] = image.shape[:2]
 				out = cv2.VideoWriter("test_out.avi", 0, 25.0, (w, h))
@@ -73,20 +83,43 @@ class MobileNetsSSDFaceDetector(PipelineElement):
 				feed_dict={image_tensor: image_expanded})
 			
 			elapsed_time = time.time() - start_time
+
 			bar.next()
 			# print('inference time cost: {}'.format(elapsed_time))
+			image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-			vis_util.visualize_boxes_and_labels_on_image_array(
+			# vis_util.visualize_boxes_and_labels_on_image_array(
+			# 	image,
+			# 	np.squeeze(boxes),
+			# 	np.squeeze(classes).astype(np.int32),
+			# 	np.squeeze(scores),
+			# 	self.__category_index,
+			# 	use_normalized_coordinates=True,
+			# 	min_score_thresh=.6,
+			# 	line_thickness=4)
+			i += 1
+			frame_faces = vis_util.get_image_from_bounding_box(
 				image,
 				np.squeeze(boxes),
 				np.squeeze(classes).astype(np.int32),
 				np.squeeze(scores),
 				self.__category_index,
 				use_normalized_coordinates=True,
-				line_thickness=4)
+				min_score_thresh=.6)
+
+			faces.append(frame_faces)
+
+			for f in range(len(frame_faces)):
+				vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
 
 			out.write(image)
 
+			if i > 100:
+				# break
+				pass
+
 		bar.finish()
-		out.release()
+
+		# out.release()
+		return (faces, len(faces))
 		
