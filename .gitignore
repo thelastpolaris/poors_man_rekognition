@@ -1,3 +1,9 @@
 *.pyc
 *.mp4
 *.avi
+*.png
+*.json
+*.jpeg
+*.jpg
+*.pb
+*.pkl

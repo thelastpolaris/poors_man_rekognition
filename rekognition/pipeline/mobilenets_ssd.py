@@ -13,10 +13,10 @@ parentDir = os.path.dirname(fileDir)
 from ..utils import label_map_util
 from ..utils import visualization_utils_color as vis_util
 
-from .pipeline_element import PipelineElement
+from .face_detector import FaceDetectorElem
 
-class MobileNetsSSDFaceDetector(PipelineElement):
-	__model_path = parentDir + '/model/frozen_inference_graph_face.pb'
+class MobileNetsSSDFaceDetector(FaceDetectorElem):
+	__model_path = parentDir + '/model/mnssd_frozen_graph.pb'
 	__labels_path = parentDir + '/protos/face_label_map.pbtxt'
 
 	__classes_num = 2
@@ -48,25 +48,22 @@ class MobileNetsSSDFaceDetector(PipelineElement):
 			self.__config.gpu_options.allow_growth = True
 
 	def run(self, input_data):
+		tf.reset_default_graph()
 		sess = tf.Session(graph=self.__detection_graph, config=self.__config)
 
 		faces = []
+		frames = []
 
 		print("Detecting faces in video")
-		bar = Bar('Processing', max = input_data[1])
-		out = None
+		bar = None
 		i = 0
 
-		data = input_data[0]
-		if type(data) != list:
-			data = [data]
+		for data in input_data:
+			i += 1
+			image = data.get_image_data()
 
-		for frame in data:
-			# image = frame.to_rgb().to_ndarray()
-			image = frame
-			if out is None:
-				[h, w] = image.shape[:2]
-				out = cv2.VideoWriter("test_out.avi", 0, 25.0, (w, h))
+			if bar is None:
+				bar = Bar('Processing', max = self.get_parent_pipeline().get_num_of_images())
 
 			image_expanded = np.expand_dims(image, axis=0)
 			image_tensor = self.__detection_graph.get_tensor_by_name('image_tensor:0')
@@ -86,19 +83,8 @@ class MobileNetsSSDFaceDetector(PipelineElement):
 
 			bar.next()
 			# print('inference time cost: {}'.format(elapsed_time))
-			image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-			# vis_util.visualize_boxes_and_labels_on_image_array(
-			# 	image,
-			# 	np.squeeze(boxes),
-			# 	np.squeeze(classes).astype(np.int32),
-			# 	np.squeeze(scores),
-			# 	self.__category_index,
-			# 	use_normalized_coordinates=True,
-			# 	min_score_thresh=.6,
-			# 	line_thickness=4)
-			i += 1
-			frame_faces = vis_util.get_image_from_bounding_box(
+			frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
 				image,
 				np.squeeze(boxes),
 				np.squeeze(classes).astype(np.int32),
@@ -107,19 +93,16 @@ class MobileNetsSSDFaceDetector(PipelineElement):
 				use_normalized_coordinates=True,
 				min_score_thresh=.6)
 
-			faces.append(frame_faces)
-
 			for f in range(len(frame_faces)):
-				vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
+				data.add_face(frame_faces[f], face_boxes[f])
+				# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
 
-			out.write(image)
+			frames.append(data)
 
 			if i > 100:
-				# break
-				pass
+				break
 
 		bar.finish()
 
-		# out.release()
-		return (faces, len(faces))
+		return frames
 		

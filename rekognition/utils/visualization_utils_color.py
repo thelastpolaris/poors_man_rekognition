@@ -185,6 +185,7 @@ def get_image_from_bounding_box(image,
                                 use_normalized_coordinates=False,
                                 min_score_thresh=.6):
   faces = []
+  face_boxes = []
   
   for b in range(0, len(boxes)):
     if scores[b] > min_score_thresh:
@@ -196,14 +197,23 @@ def get_image_from_bounding_box(image,
       if use_normalized_coordinates:
         (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
                                       ymin * im_height, ymax * im_height)
+        # left = xmin * im_width
+        # right = xmax * im_width
+        # # if right - left < 160:
+        # right = left + 160
+        # top = ymin * im_height
+        # bottom = ymax* im_height
+        # # if bottom - top < 160:
+        # bottom = top + 160
       else:
         (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
 
       # print(" ", left, right, top, bottom)
 
       faces.append(image[int(top):int(bottom), int(left):int(right)])
+      face_boxes.append(boxes[b])
 
-  return faces
+  return faces, face_boxes
 
 def draw_bounding_boxes_on_image_array(image,
                                        boxes,
@@ -400,7 +410,6 @@ def visualize_boxes_and_labels_on_image_array(image,
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
-      print(box)
       if instance_masks is not None:
         box_to_instance_masks_map[box] = instance_masks[i]
       if keypoints is not None:

@@ -9,8 +9,15 @@ from rekognition.pipeline.image_handler import ImageHandlerElem
 
 # Computer Vision
 from rekognition.pipeline.mobilenets_ssd import MobileNetsSSDFaceDetector
+from rekognition.pipeline.facenet_recognizer import FacenetRecognizer
 
 # Output
+from rekognition.pipeline.json_handler import JSONHandler
+from rekognition.pipeline.videooutput_handler import VideoOutputHandler
+
+absFilePath = os.path.abspath(__file__)
+fileDir = os.path.dirname(os.path.abspath(__file__))
+parentDir = os.path.dirname(fileDir)
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -18,22 +25,28 @@ ap.add_argument("-i", "--input", required=True,
 	help="Either video or image")
 args = vars(ap.parse_args())
 
-if os.path.isfile(args["input"]) != True:
-	print("Input file doesn't exist. Terminating.")
+input_path = fileDir + "/" + args["input"]
+
+if os.path.isfile(input_path) != True and os.path.isdir(input_path) != True :
+	print("Input file/dir doesn't exist. Terminating.")
 	sys.exit()
 
 # create pipeline
 p = Pipeline()
 
 # create first element to handle video
-image = ImageHandlerElem()
-# video = VideoHandlerElem()
+# datahandler = ImageHandlerElem()
+datahandler = VideoHandlerElem()
 face_detector = MobileNetsSSDFaceDetector()
-# face_recognition = 
+face_recognizer = FacenetRecognizer()
+jsonhandler = JSONHandler()
+videooutput_hand = VideoOutputHandler()
 
-p.add_element(image, args["input"])
-# p.add_element(video, args["input"])
-p.add_element(face_detector, image)
+p.add_element(datahandler, input_path)
+p.add_element(face_detector, datahandler)
+p.add_element(face_recognizer, face_detector)
+p.add_element(jsonhandler, face_recognizer)
+p.add_element(videooutput_hand, jsonhandler)
 
 # Print the pipeline
 print(p)
@@ -41,6 +54,6 @@ print(p)
 # Run the pipeline
 p.run()
 
-# frames_rgb = HandleVideoElem.extract_keyframes(args["input"])
+# frames_rgb = HandleVideoElem.extract_keyframes(input_path)
 # print(len(frames_rgb))
 # print(frames_rgb[0].shape)
