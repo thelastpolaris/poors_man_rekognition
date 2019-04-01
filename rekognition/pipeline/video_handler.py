@@ -22,7 +22,7 @@ class VideoHandlerElem(DataHandlerElem):
 		container = av.open(path_to_video)
 		# Get video stream
 		stream = container.streams.video[0]
-		self.set_num_of_images(stream.frames)
+		self.num_of_images = stream.frames
 		# stream.codec_context.skip_frame = 'NONKEY'
 
 		for frame in container.decode(stream):

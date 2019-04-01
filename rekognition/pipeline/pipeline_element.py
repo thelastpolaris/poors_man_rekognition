@@ -2,16 +2,17 @@ import abc
 
 # Abstract class
 class PipelineElement:
-	__parent_pipeline = None
 
 	def __init__(self):
-		pass
+		_parent_pipeline = None
 
-	def set_parent_pipeline(self, pipeline):
-		self.__parent_pipeline = pipeline
+	@property
+	def parent_pipeline(self):
+		return self._parent_pipeline
 
-	def get_parent_pipeline(self):
-		return self.__parent_pipeline
+	@parent_pipeline.setter
+	def parent_pipeline(self, parent_pipeline):
+		self._parent_pipeline = parent_pipeline
 
 	# Pure virtual function
 	@abc.abstractmethod

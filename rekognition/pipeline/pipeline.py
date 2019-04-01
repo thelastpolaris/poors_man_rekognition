@@ -1,54 +1,58 @@
 class Pipeline:
-	__elements = None
-	__results = None
-	__num_of_images = None
-	__path_to_file = None
-
 	def __init__(self):
-		self.__elements = []
-		self.__results = []
+		self._elements = []
+		self._results = []
+		self._num_of_images = 0
+		self._path_to_file = None
 
-	def set_num_of_images(self, num_of_images):
-		self.__num_of_images = num_of_images
-
-	def get_num_of_images(self):
-		return self.__num_of_images
-
-	def set_path_to_file(self, name_of_file):
-		self.__name_of_file = name_of_file
-
-	def get_path_to_file(self):
-		return self.__name_of_file
-
-	def get_filename(self):
-		split_filename = self.get_path_to_file().split("/")
+	@property
+	def filename(self):
+		split_filename = self._path_to_file.split("/")
+		# Delete empty arrays
+		split_filename = [x for x in split_filename if x != '']
 		return split_filename[len(split_filename) -1 ]
+
+	@property
+	def path_to_file(self):
+		return self._path_to_file
+
+	@path_to_file.setter
+	def path_to_file(self, path_to_file):
+		self._path_to_file = path_to_file
+
+	@property
+	def num_of_images(self):
+		return self._num_of_images
+
+	@num_of_images.setter
+	def num_of_images(self, num_of_images):
+		self._num_of_images = num_of_images
 
 	def add_element(self, pipeline_elem, input_data):
 		# Check for whether we can put elements in a pipeline
-		self.__elements.append([pipeline_elem, input_data])
-		pipeline_elem.set_parent_pipeline(self)
+		self._elements.append([pipeline_elem, input_data])
+		pipeline_elem.parent_pipeline = self
 
 	def run(self):
-		self.__results = dict()
+		self._results = dict()
 
-		for elem in self.__elements:
+		for elem in self._elements:
 			data = elem[1]
 
-			if data in self.__results.keys():
-				data = self.__results[data]
+			if data in self._results.keys():
+				data = self._results[data]
 
 			res = elem[0].run(data)
 			# Save results of element work
-			self.__results[elem[0]] = res
+			self._results[elem[0]] = res
 
 	def __str__(self):
 		output = ""
 
-		elems_len = len(self.__elements)
+		elems_len = len(self._elements)
 
 		for i in range(0, elems_len):
-			elem = self.__elements[i]
+			elem = self._elements[i]
 			output += str(elem[0].__class__.__name__)
 			
 			if i != elems_len - 1:

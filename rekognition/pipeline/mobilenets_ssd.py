@@ -57,13 +57,13 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 		print("Detecting faces in video")
 		bar = None
 		i = 0
-
+		
 		for data in input_data:
 			i += 1
 			image = data.get_image_data()
 
 			if bar is None:
-				bar = Bar('Processing', max = self.get_parent_pipeline().get_num_of_images())
+				bar = Bar('Processing', max = self.parent_pipeline.num_of_images)
 
 			image_expanded = np.expand_dims(image, axis=0)
 			image_tensor = self.__detection_graph.get_tensor_by_name('image_tensor:0')
@@ -99,8 +99,8 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 
 			frames.append(data)
 
-			if i > 200:
-				break
+			# if i > 2:
+				# break
 
 		bar.finish()
 

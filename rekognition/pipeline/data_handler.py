@@ -99,11 +99,17 @@ class Data:
 
 
 class DataHandlerElem(PipelineElement):
-	__num_of_images = 0
+	def __init__(self):
+		_num_of_images = 0
+
+	@property
+	def num_of_images(self, num_of_images):
+		return self._num_of_images
 	
-	def set_num_of_images(self, num_of_images):
-		self.__num_of_images = num_of_images
-		self.get_parent_pipeline().set_num_of_images(num_of_images)
+	@num_of_images.setter
+	def num_of_images(self, num_of_images):
+		self._num_of_images = num_of_images
+		self.parent_pipeline.num_of_images = num_of_images
 
 	def run(self, path_to_file):
-		self.get_parent_pipeline().set_path_to_file(path_to_file)
+		self.parent_pipeline.path_to_file = path_to_file

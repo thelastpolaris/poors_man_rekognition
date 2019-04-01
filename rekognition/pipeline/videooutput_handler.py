@@ -1,15 +1,18 @@
 from rekognition.pipeline.output_handler import OutputHandler
 from ..utils import visualization_utils_color as vis_util
-import cv2
-import av
+from progress.bar import Bar
+import av, os
 
 class VideoOutputHandler(OutputHandler):
 	def run(self, input_data):
-
-		container = av.open(self.get_parent_pipeline().get_filename() + '.mp4', mode='w')
+		filename = os.path.splitext(self.parent_pipeline.filename)[0]
+		container = av.open(filename + '_output.mp4', mode='w')
 		stream = None
 
 		fps = 25
+
+		print("Saving processed video")
+		bar = Bar('Processing', max = len(input_data))
 
 		for data in input_data:
 			image = data.get_image_data()
@@ -20,9 +23,6 @@ class VideoOutputHandler(OutputHandler):
 				stream.height = h
 				stream.width = w
 				stream.pix_fmt = 'yuv420p'
-
-			# if out is None:
-			# 	out = cv2.VideoWriter("test_out.avi", 0, 25.0, (w, h))
 
 			for face in data.get_faces():
 				ymin, xmin, ymax, xmax = face.get_bounding_box()
@@ -38,11 +38,13 @@ class VideoOutputHandler(OutputHandler):
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):
 				container.mux(packet)
+			bar.next()
 
         # flush stream
 		for packet in stream.encode():
 			container.mux(packet)
 		
 		container.close()
+		bar.finish()
 
 		return input_data

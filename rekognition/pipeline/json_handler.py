@@ -10,7 +10,7 @@ class JSONHandler(OutputHandler):
 		for data in input_data:
 			frames.append(data.get_JSON())
 
-		filename = self.get_parent_pipeline().get_filename() + ".json"
+		filename = self.parent_pipeline.filename.split(".")[0] + "_output.json"
 		
 		with open(filename, "w") as write_file:
 			json.dump(frames, write_file)

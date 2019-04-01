@@ -14,6 +14,8 @@ from rekognition.pipeline.facenet_recognizer import FacenetRecognizer
 # Output
 from rekognition.pipeline.json_handler import JSONHandler
 from rekognition.pipeline.videooutput_handler import VideoOutputHandler
+from rekognition.pipeline.imageoutput_handler import ImageOutputHandler
+
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -35,18 +37,20 @@ if os.path.isfile(input_path) != True and os.path.isdir(input_path) != True :
 p = Pipeline()
 
 # create first element to handle video
-# datahandler = ImageHandlerElem()
-datahandler = VideoHandlerElem()
+datahandler = ImageHandlerElem()
+# datahandler = VideoHandlerElem()
 face_detector = MobileNetsSSDFaceDetector()
 face_recognizer = FacenetRecognizer()
 jsonhandler = JSONHandler()
-videooutput_hand = VideoOutputHandler()
+# videooutput_hand = VideoOutputHandler()
+imageoutput_hand = ImageOutputHandler()
 
 p.add_element(datahandler, input_path)
 p.add_element(face_detector, datahandler)
 p.add_element(face_recognizer, face_detector)
 p.add_element(jsonhandler, face_recognizer)
-p.add_element(videooutput_hand, jsonhandler)
+# p.add_element(videooutput_hand, jsonhandler)
+p.add_element(imageoutput_hand, jsonhandler)
 
 # Print the pipeline
 print(p)
