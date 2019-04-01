@@ -3,8 +3,6 @@ import json
 
 class JSONHandler(OutputHandler):
 	def run(self, input_data):
-		# print(input_data)
-
 		frames = []
 
 		for data in input_data:

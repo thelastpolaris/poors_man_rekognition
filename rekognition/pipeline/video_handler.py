@@ -2,15 +2,13 @@ import av, cv2, abc
 from rekognition.pipeline.data_handler import DataHandlerElem, Data
 
 class Frame(Data):
-	__pts = -1
-
 	def __init__(self, pts, image_data):
 		super().__init__(image_data)
-		self.__pts = pts
+		self._pts = pts
 
 	def get_JSON(self):
 		data = super().get_JSON()
-		data["pts"] = self.__pts
+		data["pts"] = self._pts
 
 		return data
 

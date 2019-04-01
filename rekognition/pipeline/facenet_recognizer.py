@@ -22,11 +22,10 @@ fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
 class FacenetRecognizer(FaceRecognizerElem):
-	__facenet_model = parentDir + "/model/facenet_20180408.pb"
-	__facenet_classifier = parentDir + "/model/facenet_classifier.pkl"
-
 	def __init__(self):
 		super().__init__
+		self._facenet_model = parentDir + "/model/facenet_20180408.pb"
+		self._facenet_classifier = parentDir + "/model/facenet_classifier.pkl"
 
 	def train(self):
 		pass
@@ -36,7 +35,7 @@ class FacenetRecognizer(FaceRecognizerElem):
 		with tf.Graph().as_default():
 			sess = tf.Session()
 			# Load the model
-			facenet.load_model(self.__facenet_model)
+			facenet.load_model(self._facenet_model)
 
 			images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
 			embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
@@ -50,7 +49,7 @@ class FacenetRecognizer(FaceRecognizerElem):
 			bar = Bar('Processing', max = len(input_data))
 
 			for data in input_data:
-				faces = data.get_faces()
+				faces = data.faces
 				emb_array = None
 				
 				if len(faces):
@@ -59,7 +58,7 @@ class FacenetRecognizer(FaceRecognizerElem):
 					emb_array = np.zeros((len(faces), embedding_size))
 
 					for face in faces:
-						face_images.append(cv2.resize(face.get_face_image(), dsize=(160, 160), interpolation=cv2.INTER_CUBIC))		
+						face_images.append(cv2.resize(face.face_image, dsize=(160, 160), interpolation=cv2.INTER_CUBIC))		
 
 					feed_dict = { images_placeholder: np.array(face_images), phase_train_placeholder: False}
 					emb_array = sess.run(embeddings, feed_dict=feed_dict)
@@ -76,11 +75,11 @@ class FacenetRecognizer(FaceRecognizerElem):
 		print("Recognizing the face")
 		emb_array = self.calculate_embeddings(input_data)
 
-		infile = open(self.__facenet_classifier, 'rb')
+		infile = open(self._facenet_classifier, 'rb')
 		(model, class_names) = pickle.load(infile)
 
 		for d in range(len(input_data)):
-			faces = input_data[d].get_faces()
+			faces = input_data[d].faces
 
 			if len(faces):
 				# print('Loaded classifier model from file "%s"' % classifier_filename_exp)

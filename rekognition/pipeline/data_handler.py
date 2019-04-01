@@ -4,89 +4,87 @@ from rekognition.pipeline.pipeline_element import PipelineElement
 import numpy as np
 
 class Person:
-	__predicted_name = None
-	__prediction_prob = None
-
 	def __init__(self, predicted_name, prediction_prob):
-		self.__predicted_name = predicted_name
-		self.__prediction_prob = prediction_prob
+		self._predicted_name = predicted_name
+		self._prediction_prob = prediction_prob
 
-	def get_predicted_name(self):
-		return self.__predicted_name
+	@property
+	def predicted_name(self):
+		return self._predicted_name
 
 	def get_JSON(self):
 		person = {}
 
-		person["name"] = self.__predicted_name
-		person["probability"] = self.__prediction_prob
+		person["name"] = self._predicted_name
+		person["probability"] = self._prediction_prob
 
 		return person
 
 class Face:
-	__bounding_box = None
-	__face_image = None
-	__person = None
+	@property
+	def face_image(self):
+		return self._face_image
+	
+	@property
+	def bounding_box(self):
+		return self._bounding_box
 
-	def get_face_image(self):
-		return self.__face_image
-
-	def get_bounding_box(self):
-		return self.__bounding_box
-
-	def get_person(self):
-		return self.__person
-
+	@property
+	def person(self):
+		return self._person
+	
 	def set_person(self, predicted_name, prediction_prob):
-		self.__person = Person(predicted_name, prediction_prob)
+		self._person = Person(predicted_name, prediction_prob)
 
 	def __init__(self, face_image, bounding_box):
-		self.__face_image = face_image
-		self.__bounding_box = bounding_box
+		self._person = None
+		self._face_image = face_image
+		self._bounding_box = bounding_box
 
 	def get_JSON(self):
 		face = {}
 
-		bb = self.__bounding_box
+		bb = self._bounding_box
 		face["bounding_box"] = {"left": float(bb[0]), "right": float(bb[1]), "top": float(bb[2]), "bottom": float(bb[3])}
 
 		face["person"] = None
-		if self.__person:
-			face["person"] = self.__person.get_JSON()
+		if self._person:
+			face["person"] = self._person.get_JSON()
 
 		return face
 
 
 # can be either image or video frame
 class Data:
-	__image_data = None
-	__faces = None
-
 	def __init__(self, image_data):
-		self.__image_data = image_data
-		self.__faces = []
+		self._image_data = image_data
+		self._faces = []
 
 	def add_face(self, face_image, bounding_box):
 		face = Face(face_image, bounding_box)
-		self.__faces.append(face)
+		self._faces.append(face)
 
-	def get_faces(self):
-		return self.__faces
+	@property
+	def faces(self):
+		return self._faces
 
-	def get_image_data(self, delete_data = False):
-		if type(self.__image_data) == np.ndarray:
-			image_data = self.__image_data
+	@property
+	def image_data(self, delete_data = False):
+		if type(self._image_data) == np.ndarray:
+			image_data = self._image_data
 
 			if delete_data:
-				self.__image_data = None
+				self._image_data = None
 
 			return image_data
+		return None
 	
 	def get_JSON(self):
 		data = {}
 
 		faces = []
 
-		for face in self.__faces:
+		for face in self._faces:
 			f = dict()
 
 			f["face"] = face.get_JSON()

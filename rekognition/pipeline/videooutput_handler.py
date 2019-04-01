@@ -15,7 +15,7 @@ class VideoOutputHandler(OutputHandler):
 		bar = Bar('Processing', max = len(input_data))
 
 		for data in input_data:
-			image = data.get_image_data()
+			image = data.image_data
 
 			if stream is None:
 				[h, w] = image.shape[:2]
@@ -24,9 +24,9 @@ class VideoOutputHandler(OutputHandler):
 				stream.width = w
 				stream.pix_fmt = 'yuv420p'
 
-			for face in data.get_faces():
-				ymin, xmin, ymax, xmax = face.get_bounding_box()
-				name = face.get_person().get_predicted_name()
+			for face in data.faces:
+				ymin, xmin, ymax, xmax = face.bounding_box
+				name = face.person.predicted_name
 				
 				vis_util.draw_bounding_box_on_image_array(image,
 												 ymin,
