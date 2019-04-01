@@ -21,7 +21,7 @@ class Pipeline:
 		return self.__name_of_file
 
 	def get_filename(self):
-		split_filename = get_name_of_file().split("/")
+		split_filename = self.get_path_to_file().split("/")
 		return split_filename[len(split_filename) -1 ]
 
 	def add_element(self, pipeline_elem, input_data):

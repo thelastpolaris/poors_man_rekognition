@@ -5,16 +5,24 @@ import av
 
 class VideoOutputHandler(OutputHandler):
 	def run(self, input_data):
-		out = None
+
+		container = av.open(self.get_parent_pipeline().get_filename() + '.mp4', mode='w')
+		stream = None
+
+		fps = 25
 
 		for data in input_data:
 			image = data.get_image_data()
 
-			self.get_parent_pipeline().get_filename()
-
-			if out is None:
+			if stream is None:
 				[h, w] = image.shape[:2]
-				out = cv2.VideoWriter("test_out.avi", 0, 25.0, (w, h))
+				stream = container.add_stream('mpeg4', rate=fps)
+				stream.height = h
+				stream.width = w
+				stream.pix_fmt = 'yuv420p'
+
+			# if out is None:
+			# 	out = cv2.VideoWriter("test_out.avi", 0, 25.0, (w, h))
 
 			for face in data.get_faces():
 				ymin, xmin, ymax, xmax = face.get_bounding_box()
@@ -25,10 +33,16 @@ class VideoOutputHandler(OutputHandler):
 												 xmin,
 												 ymax,
 												 xmax,
-												 display_str_list=[name] )
+												 display_str_list=[name])
 
-			out.write(image)
+			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
+			for packet in stream.encode(frame):
+				container.mux(packet)
 
-		out.release()
+        # flush stream
+		for packet in stream.encode():
+			container.mux(packet)
+		
+		container.close()
 
 		return input_data

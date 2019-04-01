@@ -99,7 +99,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 
 			frames.append(data)
 
-			if i > 100:
+			if i > 200:
 				break
 
 		bar.finish()
