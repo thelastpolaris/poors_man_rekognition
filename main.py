@@ -9,6 +9,7 @@ from rekognition.pipeline.image_handler import ImageHandlerElem
 
 # Computer Vision
 from rekognition.pipeline.mobilenets_ssd import MobileNetsSSDFaceDetector
+from rekognition.pipeline.yolov3_face_detector import YOLOv3FaceDetector
 from rekognition.pipeline.facenet_recognizer import FacenetRecognizer
 
 # Output
@@ -36,21 +37,33 @@ if os.path.isfile(input_path) != True and os.path.isdir(input_path) != True :
 # create pipeline
 p = Pipeline()
 
-# create first element to handle video
-datahandler = ImageHandlerElem()
-# datahandler = VideoHandlerElem()
-face_detector = MobileNetsSSDFaceDetector()
-face_recognizer = FacenetRecognizer()
-jsonhandler = JSONHandler()
-# videooutput_hand = VideoOutputHandler()
-imageoutput_hand = ImageOutputHandler()
+image = False
+# Data handlers
+if image:
+	datahandler = ImageHandlerElem()
+else:
+	datahandler = VideoHandlerElem()
 
+# Face Detector
+face_detector = MobileNetsSSDFaceDetector()
+# face_detector = YOLOv3FaceDetector()
+
+# Face Recognizer
+face_recognizer = FacenetRecognizer()
+
+# Output Handler
+jsonhandler = JSONHandler()
+if image:
+	output_hand = ImageOutputHandler()
+else:
+	output_hand = VideoOutputHandler()
+
+# Construct the pipeline
 p.add_element(datahandler, input_path)
 p.add_element(face_detector, datahandler)
 p.add_element(face_recognizer, face_detector)
 p.add_element(jsonhandler, face_recognizer)
-# p.add_element(videooutput_hand, jsonhandler)
-p.add_element(imageoutput_hand, jsonhandler)
+p.add_element(output_hand, jsonhandler)
 
 # Print the pipeline
 print(p)

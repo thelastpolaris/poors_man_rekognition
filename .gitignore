@@ -7,3 +7,4 @@
 *.jpg
 *.pb
 *.pkl
+*.weights

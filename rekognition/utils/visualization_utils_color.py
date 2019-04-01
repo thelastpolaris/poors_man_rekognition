@@ -154,6 +154,7 @@ def draw_bounding_box_on_image(image,
                                   ymin * im_height, ymax * im_height)
   else:
     (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
+
   draw.line([(left, top), (left, bottom), (right, bottom),
              (right, top), (left, top)], width=thickness, fill=color)
   try:
@@ -207,8 +208,6 @@ def get_image_from_bounding_box(image,
         # bottom = top + 160
       else:
         (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
-
-      # print(" ", left, right, top, bottom)
 
       faces.append(image[int(top):int(bottom), int(left):int(right)])
       face_boxes.append(boxes[b])

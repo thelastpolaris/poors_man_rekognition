@@ -28,14 +28,3 @@ class ImageHandlerElem(DataHandlerElem):
 			# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 			yield Image(image, filename)
-
-
-		# for frame in container.decode(stream):
-		#     frames_rgb.append(frame.to_rgb().to_ndarray())
-
-		#     bar.next()
-
-		# bar.finish()
-
-		# return frames_rgb
-		# return (image, 1)

@@ -1,9 +1,6 @@
 import numpy as np
 import tensorflow as tf
 import sys, os
-import time
-import cv2
-import av
 from progress.bar import Bar
 
 absFilePath = os.path.abspath(__file__)
@@ -74,15 +71,11 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 			classes = self._detection_graph.get_tensor_by_name('detection_classes:0')
 			num_detections = self._detection_graph.get_tensor_by_name('num_detections:0')
 
-			start_time = time.time()
 			(boxes, scores, classes, num_detections) = sess.run(
 				[boxes, scores, classes, num_detections],
 				feed_dict={image_tensor: image_expanded})
 			
-			elapsed_time = time.time() - start_time
-
 			bar.next()
-			# print('inference time cost: {}'.format(elapsed_time))
 
 			frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
 				image,
@@ -99,8 +92,6 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 
 			frames.append(data)
 
-			if i > 2:
-				break
 
 		bar.finish()
 
