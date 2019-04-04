@@ -10,7 +10,7 @@ class ImageOutputHandler(OutputHandler):
 		print("Saving processed images")
 		bar = Bar('Processing', max = len(input_data))
 		
-		new_files_dir = files_dir + "_output/"
+		new_files_dir = "output/" + files_dir + "_output/"
 		if not os.path.exists(new_files_dir):
 			os.mkdir(new_files_dir)
 

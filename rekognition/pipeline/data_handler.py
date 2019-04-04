@@ -16,7 +16,7 @@ class Person:
 		person = {}
 
 		person["name"] = self._predicted_name
-		person["probability"] = self._prediction_prob
+		person["confidence"] = self._prediction_prob
 
 		return person
 

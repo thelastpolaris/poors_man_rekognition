@@ -17,7 +17,6 @@ from rekognition.pipeline.json_handler import JSONHandler
 from rekognition.pipeline.videooutput_handler import VideoOutputHandler
 from rekognition.pipeline.imageoutput_handler import ImageOutputHandler
 
-
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
@@ -45,11 +44,11 @@ else:
 	datahandler = VideoHandlerElem()
 
 # Face Detector
-face_detector = MobileNetsSSDFaceDetector()
-# face_detector = YOLOv3FaceDetector()
+face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
+# face_detector = YOLOv3FaceDetector(min_score_thresh=.3)
 
 # Face Recognizer
-face_recognizer = FacenetRecognizer()
+face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/facenet_classifier.pkl")
 
 # Output Handler
 jsonhandler = JSONHandler()

@@ -6,7 +6,11 @@ import av, os
 class VideoOutputHandler(OutputHandler):
 	def run(self, input_data):
 		filename = os.path.splitext(self.parent_pipeline.filename)[0]
-		container = av.open(filename + '_output.mp4', mode='w')
+		
+		if not os.path.exists("output"):
+			os.mkdir("output")
+
+		container = av.open("output/" + filename + '_output.mp4', mode='w')
 		stream = None
 
 		fps = 25

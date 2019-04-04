@@ -12,8 +12,8 @@ def refined_box(left, top, width, height):
     bottom = top + height
 
     original_vert_height = bottom - top
-    top = int(top + original_vert_height * 0.15)
-    bottom = int(bottom - original_vert_height * 0.05)
+    top = int(top + original_vert_height * 0.05)
+    bottom = int(bottom - original_vert_height * 0.01)
 
     margin = ((bottom - top) - (right - left)) // 2
     left = left - margin if (bottom - top - right + left) % 2 == 0 else left - margin - 1
@@ -23,7 +23,7 @@ def refined_box(left, top, width, height):
     return left, top, right, bottom
 
 class YOLOv3FaceDetector(FaceDetectorElem):
-	def __init__(self):
+	def __init__(self, min_score_thresh=.5):
 		super().__init__()
 		model_weights = parentDir + "/model/yolov3/yolov3-wider_16000.weights"
 		model_cfg = parentDir + "/model/yolov3/yolov3-face.cfg"
@@ -31,6 +31,8 @@ class YOLOv3FaceDetector(FaceDetectorElem):
 		self._net = cv2.dnn.readNetFromDarknet(model_cfg, model_weights)
 		self._net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 		self._net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+
+		self._min_score_thresh = min_score_thresh
 
 	# Get the names of the output layers
 	def get_outputs_names(self):
@@ -107,19 +109,21 @@ class YOLOv3FaceDetector(FaceDetectorElem):
         	# Runs the forward pass to get output of the output layers
 			outs = self._net.forward(self.get_outputs_names())
 			
-			boxes = self.get_boxes(outs, 0.5, 0.4, image)
+			boxes = self.get_boxes(outs, self._min_score_thresh, 0.4, image)
 			for box in boxes:
-				left, top, right, bottom = refined_box(box[0], box[1], box[2], box[3])
+				# Check whether box is real
+				if (all(b > 0 for b in box)) == True:
+					left, top, right, bottom = refined_box(box[0], box[1], box[2], box[3])
 
-				face = image[int(top):int(bottom), int(left):int(right)]
-				# Output relative coordinates
-				data.add_face(face, [top/image_height, left/image_width, bottom/image_height, right/image_width])
+					face = image[int(top):int(bottom), int(left):int(right)]
+					# Output relative coordinates
+					data.add_face(face, [top/image_height, left/image_width, bottom/image_height, right/image_width])
 
 			frames.append(data)
 
 			bar.next()
 
-			# if i > 1:
+			# if i > 50:
 				# break
 		
 		bar.finish()
