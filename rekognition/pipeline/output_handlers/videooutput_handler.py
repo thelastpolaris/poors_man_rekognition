@@ -1,5 +1,5 @@
-from rekognition.pipeline.output_handler import OutputHandler
-from ..utils import visualization_utils_color as vis_util
+from .output_handler import OutputHandler
+from ...utils import visualization_utils_color as vis_util
 from progress.bar import Bar
 import av, os
 

@@ -1,5 +1,5 @@
 import os, cv2
-from rekognition.pipeline.data_handler import DataHandlerElem, Data
+from .data_handler import DataHandlerElem, Data
 
 class Image(Data):
 	def __init__(self, image_data, filename):

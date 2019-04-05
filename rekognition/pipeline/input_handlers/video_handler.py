@@ -1,5 +1,5 @@
 import av, cv2, abc
-from rekognition.pipeline.data_handler import DataHandlerElem, Data
+from .data_handler import DataHandlerElem, Data
 
 class Frame(Data):
 	def __init__(self, pts, image_data):

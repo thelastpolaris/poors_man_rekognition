@@ -1,5 +1,5 @@
-from rekognition.pipeline.output_handler import OutputHandler
-from ..utils import visualization_utils_color as vis_util
+from .output_handler import OutputHandler
+from ...utils import visualization_utils_color as vis_util
 from progress.bar import Bar
 import cv2, os
 
@@ -11,6 +11,7 @@ class ImageOutputHandler(OutputHandler):
 		bar = Bar('Processing', max = len(input_data))
 		
 		new_files_dir = "output/" + files_dir + "_output/"
+		
 		if not os.path.exists(new_files_dir):
 			os.mkdir(new_files_dir)
 

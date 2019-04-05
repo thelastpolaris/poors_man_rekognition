@@ -7,16 +7,16 @@ absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
-from ..utils import label_map_util
-from ..utils import visualization_utils_color as vis_util
+from ...utils import label_map_util
+from ...utils import visualization_utils_color as vis_util
 
 from .face_detector import FaceDetectorElem
 
 class MobileNetsSSDFaceDetector(FaceDetectorElem):
 	def __init__(self, min_score_thresh=.7):
 		super().__init__()
-		self._model_path = parentDir + '/model/mnssd_frozen_graph.pb'
-		self._labels_path = parentDir + '/protos/face_label_map.pbtxt'
+		self._model_path = parentDir + '/../model/mnssd_frozen_graph.pb'
+		self._labels_path = parentDir + '/../protos/face_label_map.pbtxt'
 
 		self._min_score_thresh = min_score_thresh
 

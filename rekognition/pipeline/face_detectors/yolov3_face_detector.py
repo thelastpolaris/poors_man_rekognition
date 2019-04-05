@@ -25,8 +25,8 @@ def refined_box(left, top, width, height):
 class YOLOv3FaceDetector(FaceDetectorElem):
 	def __init__(self, min_score_thresh=.5):
 		super().__init__()
-		model_weights = parentDir + "/model/yolov3/yolov3-wider_16000.weights"
-		model_cfg = parentDir + "/model/yolov3/yolov3-face.cfg"
+		model_weights = parentDir + "/../model/yolov3/yolov3-wider_16000.weights"
+		model_cfg = parentDir + "/../model/yolov3/yolov3-face.cfg"
 
 		self._net = cv2.dnn.readNetFromDarknet(model_cfg, model_weights)
 		self._net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)

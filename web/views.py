@@ -1,20 +1,28 @@
 import tornado.ioloop
 import tornado.web
+import os, uuid
+from .rekognition.pipeline.pipeline import Pipeline
 
-class MainHandler(tornado.web.RequestHandler):
+__UPLOADS__ = "uploads/"
+
+class DashboardHandler(tornado.web.RequestHandler):
 	def get(self):
-		self.write('<html><body><form action="/myform" method="POST">'
-					'<input type="text" name="message">'
-					'<input type="submit" value="Submit">'
-					'</form></body></html>')
+		self.render("index.html", title = "Poor's Man Rekognition - Dashboard")
 
 	def post(self):
 		self.set_header("Content-Type", "text/plain")
 		self.write("You wrote " + self.get_body_argument("message"))
-	# def get(self):
-		# self.render("templates/index.html", title="Poor's Man Rekognition - Dashboard")
 
-if __name__ == "__main__":
-    app = make_app()
-    app.listen(8888)
-    tornado.ioloop.IOLoop.current().start()
+class Upload(tornado.web.RequestHandler):
+    def post(self):
+        fileinfo = self.request.files['filearg'][0]
+        # print("fileinfo is", fileinfo)
+        fname = fileinfo['filename']
+        extn = os.path.splitext(fname)[1]
+        cname = str(uuid.uuid4()) + extn
+        fh = open(__UPLOADS__ + cname, 'wb')
+        fh.write(fileinfo['body'])
+        self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
+
+        # Pipeline()
+

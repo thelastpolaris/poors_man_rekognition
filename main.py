@@ -4,18 +4,18 @@ from rekognition.pipeline.pipeline import Pipeline
 
 # Import pipeline elements
 # Data Handlers
-from rekognition.pipeline.video_handler import VideoHandlerElem
-from rekognition.pipeline.image_handler import ImageHandlerElem
+from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
+from rekognition.pipeline.input_handlers.image_handler import ImageHandlerElem
 
 # Computer Vision
-from rekognition.pipeline.mobilenets_ssd import MobileNetsSSDFaceDetector
-from rekognition.pipeline.yolov3_face_detector import YOLOv3FaceDetector
-from rekognition.pipeline.facenet_recognizer import FacenetRecognizer
+from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
+from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
+from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
 
 # Output
-from rekognition.pipeline.json_handler import JSONHandler
-from rekognition.pipeline.videooutput_handler import VideoOutputHandler
-from rekognition.pipeline.imageoutput_handler import ImageOutputHandler
+from rekognition.pipeline.output_handlers.json_handler import JSONHandler
+from rekognition.pipeline.output_handlers.videooutput_handler import VideoOutputHandler
+from rekognition.pipeline.output_handlers.imageoutput_handler import ImageOutputHandler
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -44,11 +44,11 @@ else:
 	datahandler = VideoHandlerElem()
 
 # Face Detector
-face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
-# face_detector = YOLOv3FaceDetector(min_score_thresh=.3)
+# face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
+face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
 
 # Face Recognizer
-face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/facenet_classifier.pkl")
+face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")
 
 # Output Handler
 jsonhandler = JSONHandler()

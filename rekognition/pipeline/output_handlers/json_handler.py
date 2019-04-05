@@ -1,4 +1,4 @@
-from rekognition.pipeline.output_handler import OutputHandler
+from .output_handler import OutputHandler
 import json, os
 
 class JSONHandler(OutputHandler):

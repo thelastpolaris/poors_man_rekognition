@@ -1,6 +1,6 @@
 import av, abc
 from progress.bar import Bar
-from rekognition.pipeline.pipeline_element import PipelineElement
+from ..pipeline_element import PipelineElement
 import numpy as np
 
 class Person:

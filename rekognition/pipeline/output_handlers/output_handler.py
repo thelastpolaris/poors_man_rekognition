@@ -1,4 +1,4 @@
-from rekognition.pipeline.pipeline_element import PipelineElement
+from ..pipeline_element import PipelineElement
 
 class OutputHandler(PipelineElement):
 
