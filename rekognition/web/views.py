@@ -134,15 +134,25 @@ class TaskHandler(SessionMixin, RequestHandler):
             else:    
                 fileinfo = self.request.files[mode][0]
                 fname = fileinfo['filename']
-                
-                now = datetime.datetime.now()
-                new_dir = str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+                fname = fname.replace(" ", "")
+                print(fname)
+                print(fname)
+                print(fname)
+                print(fname)
+                print(fname)
+                print(fname)
+                print(fname)
 
                 folder = __UPLOADS__
+
                 if mode == "imagefile":
+                    now = datetime.datetime.now()
+                    new_dir = str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+
                     folder = folder + new_dir + "/"
                     if os.path.isdir(folder) == False:
                         os.mkdir(folder)
+
                 filename = folder + fname
 
                 fh = open(filename, 'wb')
