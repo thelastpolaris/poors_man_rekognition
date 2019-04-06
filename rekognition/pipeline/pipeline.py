@@ -1,3 +1,5 @@
+import gc
+
 class Pipeline:
 	def __init__(self):
 		self._elements = []
@@ -45,6 +47,8 @@ class Pipeline:
 			res = elem[0].run(data)
 			# Save results of element work
 			self._results[elem[0]] = res
+
+		gc.collect()
 
 		return True
 

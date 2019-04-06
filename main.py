@@ -43,9 +43,11 @@ if image:
 else:
 	datahandler = VideoHandlerElem()
 
+datahandler.max_frames = 1500
+
 # Face Detector
-# face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
-face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
+face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
+# face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
 
 # Face Recognizer
 face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")

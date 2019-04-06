@@ -1,5 +1,6 @@
 import av, cv2, abc
 from .data_handler import DataHandlerElem, Data
+from scipy.misc import imresize
 
 class Frame(Data):
 	def __init__(self, pts, image_data):
@@ -25,6 +26,17 @@ class VideoHandlerElem(DataHandlerElem):
 
 		for frame in container.decode(stream):
 			image = frame.to_rgb().to_ndarray()
-			# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+			
+			img_height = image.shape[0]
+			img_width = image.shape[1]
 
-			yield Frame(frame.pts, image)
+			if img_width > 640:
+				size_ratio = 640/img_width
+				image = cv2.resize(image, dsize=(int(img_width*size_ratio), int(img_height*size_ratio)), interpolation=cv2.INTER_CUBIC)
+
+			self._current_frame += 1
+			# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+			if self._current_frame < self._max_frames:
+				yield Frame(frame.pts, image)
+			else:
+				break

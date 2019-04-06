@@ -26,5 +26,7 @@ class ImageHandlerElem(DataHandlerElem):
 		for filename in img_filenames:
 			image = cv2.imread(path_to_folder + filename)
 			# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+			self._current_frame += 1
 
-			yield Image(image, filename)
+			if self._current_frame < self._max_frames:
+				yield Image(image, filename)

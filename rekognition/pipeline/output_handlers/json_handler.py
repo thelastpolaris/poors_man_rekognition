@@ -14,6 +14,6 @@ class JSONHandler(OutputHandler):
 		filename = "output/" + self.parent_pipeline.filename.split(".")[0] + "_output.json"
 		
 		with open(filename, "w") as write_file:
-			json.dump(frames, write_file)
+			json.dump(frames, write_file, indent=4)
 
 		return input_data

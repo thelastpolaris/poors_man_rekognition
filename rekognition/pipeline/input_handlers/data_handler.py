@@ -97,17 +97,33 @@ class Data:
 
 
 class DataHandlerElem(PipelineElement):
-	def __init__(self):
+	_max_frames = None
+	_current_frame = 0
+
+	def __init__(self, max_frames = None):
 		_num_of_images = 0
+		_current_frame = 0 #counter
+		_max_frames = max_frames
 
 	@property
-	def num_of_images(self, num_of_images):
+	def max_frames(self):
+		return self._max_frames
+
+	@max_frames.setter
+	def max_frames(self, max_frames):
+		self._max_frames = max_frames
+
+	@property
+	def num_of_images(self):
 		return self._num_of_images
-	
+
 	@num_of_images.setter
 	def num_of_images(self, num_of_images):
 		self._num_of_images = num_of_images
 		self.parent_pipeline.num_of_images = num_of_images
+
+		if self._max_frames == None:
+			self._max_frames = self._num_of_images
 
 	def run(self, path_to_file):
 		self.parent_pipeline.path_to_file = path_to_file

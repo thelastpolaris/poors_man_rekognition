@@ -6,6 +6,8 @@ from tornado_sqlalchemy import (SessionMixin, as_future, declarative_base,
 
 from .pipelines import createPipeline
 from .models import User, File
+import datetime
+import pytube
 
 __UPLOADS__ = "uploads/"
 
@@ -22,7 +24,6 @@ class DashboardHandler(SessionMixin, RequestHandler):
             with self.make_session() as session:
                 user = session.query(User).filter(User.id == user_id).first()
                 files = session.query(File).filter(File.user_id == user_id).all()
-                print(files)
 
                 processed_files = session.query(File).filter(File.user_id == user_id).filter(File.status == 2).count()
                 inprocess_files = session.query(File).filter(File.user_id == user_id).filter(File.status != 2).count()
@@ -106,13 +107,46 @@ class TaskHandler(SessionMixin, RequestHandler):
         if user_id != None:
             if os.path.exists(__UPLOADS__) != True:
                 os.mkdir(__UPLOADS__)
+            
+            youtubevideo = self.get_body_argument('youtubevideo', default=None, strip=False)
+            if youtubevideo != None:
+                mode = "youtubefile"
+            else:
+                mode = list(self.request.files.keys())[0]
 
-            fileinfo = self.request.files['filearg'][0]
-            fname = fileinfo['filename']
-            filename = __UPLOADS__ + fname
+            if mode == "youtubefile":
+                yt = pytube.YouTube(youtubevideo)
+                fname = yt.video_id
 
-            fh = open(filename, 'wb')
-            fh.write(fileinfo['body'])
+                print("Started downloading video")
+                yvideo = yt.streams.filter(file_extension='mp4', resolution="360p").first()
+
+                isFinished = await tornado.ioloop.IOLoop.current().run_in_executor(
+                    None,
+                    yvideo.download,
+                    __UPLOADS__,
+                    fname
+                )
+
+                filename = __UPLOADS__ + fname + ".mp4"
+                fname = fname + ".mp4"
+
+            else:    
+                fileinfo = self.request.files[mode][0]
+                fname = fileinfo['filename']
+                
+                now = datetime.datetime.now()
+                new_dir = str(now.month) + str(now.day) + str(now.hour) + str(now.minute) + str(now.second)
+
+                folder = __UPLOADS__
+                if mode == "imagefile":
+                    folder = folder + new_dir + "/"
+                    if os.path.isdir(folder) == False:
+                        os.mkdir(folder)
+                filename = folder + fname
+
+                fh = open(filename, 'wb')
+                fh.write(fileinfo['body'])
 
             with self.make_session() as session:
                 file = File(user_id, fname)
@@ -125,7 +159,13 @@ class TaskHandler(SessionMixin, RequestHandler):
                 file.status = 1
                 session.commit()
                 
-                p = createPipeline(filename)
+                isImage = (mode == 'imagefile')
+                if isImage:
+                    input_data = folder
+                else:
+                    input_data = filename
+
+                p = createPipeline(input_data, isImage, isImage, 1500)
                 
                 isFinished = await tornado.ioloop.IOLoop.current().run_in_executor(
                     None,
@@ -134,10 +174,21 @@ class TaskHandler(SessionMixin, RequestHandler):
                 
                 fname = os.path.splitext(fname)[0]
 
+                out_extension = ''
+                if isImage:
+                    output_file = new_dir + "_output/" + fname + "_output.jpg"
+                    output_json = new_dir + "_output.json"
+                else:
+                    output_file = fname + "_output.mp4"
+                    output_json = fname + "_output.json"
+
                 if isFinished:
                     file.status = 2
-                    file.json_file = fname + "_output.json"
-                    file.output_file = fname + "_output.mp4"
+                    file.json_file = output_json
+                    file.output_file = output_file
+                    session.commit()
+                else:
+                    file.status = 3
                     session.commit()
 
                 # file.

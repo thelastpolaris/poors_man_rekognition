@@ -151,7 +151,7 @@ class FacenetRecognizer(FaceRecognizerElem):
 					person_name = class_names[label]
 					confidence = np.sum(classes == label)/n_ngbr
 					
-					if confidence <= 0.4:
+					if confidence <= 0.3:
 						person_name = "Unknown"
 
 					faces[f].set_person(person_name, confidence)

@@ -21,7 +21,7 @@ absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
-def createPipeline(input_path, isImage = False, useYolo = False):
+def createPipeline(input_path, isImage = False, useYolo = False, max_frames = None):
 	p = Pipeline()
 	
 	# Data handlers
@@ -29,7 +29,7 @@ def createPipeline(input_path, isImage = False, useYolo = False):
 		datahandler = ImageHandlerElem()
 	else:
 		datahandler = VideoHandlerElem()
-	
+	datahandler.max_frames = max_frames
 	# Face Detector
 	if useYolo:
 		face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
@@ -45,7 +45,7 @@ def createPipeline(input_path, isImage = False, useYolo = False):
 		output_hand = ImageOutputHandler()
 	else:
 		output_hand = VideoOutputHandler()
-	
+
 	# Construct the pipeline
 	p.add_element(datahandler, input_path)
 	p.add_element(face_detector, datahandler)
