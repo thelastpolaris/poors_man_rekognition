@@ -46,6 +46,8 @@ class Pipeline:
 			# Save results of element work
 			self._results[elem[0]] = res
 
+		return True
+
 	def __str__(self):
 		output = ""
 

@@ -23,7 +23,7 @@ class VideoOutputHandler(OutputHandler):
 
 			if stream is None:
 				[h, w] = image.shape[:2]
-				stream = container.add_stream('mpeg4', rate=fps)
+				stream = container.add_stream('h264', rate=fps)
 				stream.height = h
 				stream.width = w
 				stream.pix_fmt = 'yuv420p'
