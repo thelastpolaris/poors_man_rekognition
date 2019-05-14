@@ -1,6 +1,6 @@
 import numpy as np
-import tensorflow as tf
 import sys, os
+import tensorflow as tf
 from progress.bar import Bar
 
 absFilePath = os.path.abspath(__file__)
@@ -47,7 +47,6 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 			self._config.gpu_options.allow_growth = True
 
 	def run(self, input_data):
-		tf.reset_default_graph()
 		sess = tf.Session(graph=self._detection_graph, config=self._config)
 
 		faces = []
@@ -62,7 +61,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 			image = data.image_data
 
 			if bar is None:
-				bar = Bar('Processing', max = self.parent_pipeline.num_of_images)
+				bar = Bar('Processing', max = len(input_data))
 
 			image_expanded = np.expand_dims(image, axis=0)
 			image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
@@ -92,11 +91,4 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 				data.add_face(frame_faces[f], face_boxes[f])					
 				# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
 
-			frames.append(data)
-			# if i > 100:
-				# break
-
 		bar.finish()
-
-		return frames
-		

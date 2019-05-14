@@ -2,9 +2,8 @@ import abc
 
 # Abstract class
 class PipelineElement:
-
 	def __init__(self):
-		_parent_pipeline = None
+		self._parent_pipeline = None
 
 	@property
 	def parent_pipeline(self):
