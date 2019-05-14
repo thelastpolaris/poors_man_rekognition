@@ -1,6 +1,5 @@
 import av, cv2, abc
 from .data_handler import DataHandlerElem, Data
-from scipy.misc import imresize
 
 class Frame(Data):
 	def __init__(self, pts, image_data):
@@ -14,7 +13,6 @@ class Frame(Data):
 		return data
 
 class VideoHandlerElem(DataHandlerElem):
-
 	def run(self, path_to_video):
 		super().run(path_to_video)
 

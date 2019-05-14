@@ -69,13 +69,10 @@ class Data:
 		return self._faces
 
 	@property
-	def image_data(self, delete_data = False):
+	def image_data(self):
 		if type(self._image_data) == np.ndarray:
 			image_data = self._image_data
-
-			if delete_data:
-				self._image_data = None
-
+			# self._image_data = None
 			return image_data
 		return None
 	

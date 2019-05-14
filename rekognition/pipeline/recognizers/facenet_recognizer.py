@@ -30,77 +30,69 @@ class FacenetRecognizer(FaceRecognizerElem):
 		self._facenet_model = facenet_model
 		self._facenet_classifier = facenet_classifier
 
-	def calculate_embeddings(self, input_data, data_from_pipeline = True, batch_size = 100, image_size = 160):
-		with tf.Graph().as_default():
-			sess = tf.Session()
-			# Load the model
+		self._graph = tf.Graph()
+		self._sess = tf.Session()
+
+		# Load the model
+		with self._sess.as_default():
 			facenet.load_model(self._facenet_model)
 
-			images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-			embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-			phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-			embedding_size = embeddings.get_shape()[1]
+	def calculate_embeddings(self, input_data, data_from_pipeline = True, batch_size = 100, image_size = 160):
+		images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+		embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+		phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+		embedding_size = embeddings.get_shape()[1]
 
-			data_emb = []
-			
-			print('Calculating features for images')
+		emb_array = None
 
-			bar = Bar('Processing', max = len(input_data))
-			i = 0
+		# print('Calculating features for images')
 
-			if data_from_pipeline:
-				for data in input_data:
-					i += 1
-					faces = data.faces
-					emb_array = None
+		# bar = Bar('Processing', max = len(input_data))
+		i = 0
 
-					if len(faces):
-						face_images = []
+		if data_from_pipeline:
+			data = input_data
+			i += 1
+			faces = data.faces
 
-						emb_array = np.zeros((len(faces), embedding_size))
+			if len(faces):
+				face_images = []
 
-						for face in faces:
-							img = face.face_image
+				emb_array = np.zeros((len(faces), embedding_size))
 
-							# img = misc.imread(image_paths[i])
-							# if img.ndim == 2:
-								# img = to_rgb(img)
-							# img = imresize(img, (image_size, image_size))
-							img = cv2.resize(img, dsize=(image_size, image_size), interpolation=cv2.INTER_CUBIC)
+				for face in faces:
+					img = face.face_image
 
-							img = facenet.prewhiten(img)
-							img = facenet.crop(img, False, image_size)
-							img = facenet.flip(img, False)
+					img = cv2.resize(img, dsize=(image_size, image_size), interpolation=cv2.INTER_CUBIC)
 
-							# img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-							# cv2.imwrite(str(i) + ".jpg",img)
-							face_images.append(img)
+					img = facenet.prewhiten(img)
+					img = facenet.crop(img, False, image_size)
+					img = facenet.flip(img, False)
 
-						feed_dict = { images_placeholder: np.array(face_images), phase_train_placeholder: False}
-						emb_array = sess.run(embeddings, feed_dict=feed_dict)
+					face_images.append(img)
 
-					data_emb.append(emb_array)
-					bar.next()
-			else:
-				nrof_images = len(input_data)
-				nrof_batches_per_epoch = int(math.ceil(1.0*nrof_images / batch_size))
-				data_emb = np.zeros((nrof_images, embedding_size))
+				feed_dict = { images_placeholder: np.array(face_images), phase_train_placeholder: False}
+				emb_array = self._sess.run(embeddings, feed_dict=feed_dict)
 
-				for i in range(nrof_batches_per_epoch):
-					start_index = i*batch_size
-					end_index = min((i+1)*batch_size, nrof_images)
-					paths_batch = input_data[start_index:end_index]
-					images = facenet.load_data(paths_batch, False, False, image_size)
-					feed_dict = { images_placeholder:images, phase_train_placeholder:False }
-					data_emb[start_index:end_index,:] = sess.run(embeddings, feed_dict=feed_dict)
-									
-					bar.goto(bar.index + end_index - start_index)
+			# bar.next()
+		else:
+			nrof_images = len(input_data)
+			nrof_batches_per_epoch = int(math.ceil(1.0*nrof_images / batch_size))
+			emb_array = np.zeros((nrof_images, embedding_size))
 
-			bar.finish()
+			for i in range(nrof_batches_per_epoch):
+				start_index = i*batch_size
+				end_index = min((i+1)*batch_size, nrof_images)
+				paths_batch = input_data[start_index:end_index]
+				images = facenet.load_data(paths_batch, False, False, image_size)
+				feed_dict = { images_placeholder:images, phase_train_placeholder:False }
+				emb_array[start_index:end_index,:] = self._sess.run(embeddings, feed_dict=feed_dict)
 
-		tf.reset_default_graph()
+				# bar.goto(bar.index + end_index - start_index)
 
-		return data_emb
+		# bar.finish()
+
+		return emb_array
 
 	def train(self, dataset_folder, model_name):
 		dataset = facenet.get_dataset(dataset_folder)
@@ -126,7 +118,6 @@ class FacenetRecognizer(FaceRecognizerElem):
 
 	def run(self, input_data):
 		print("Recognizing the face")
-		emb_array = self.calculate_embeddings(input_data)
 
 		infile = open(self._facenet_classifier, 'rb')
 		(model_emb, class_names, labels) = pickle.load(infile)
@@ -135,13 +126,15 @@ class FacenetRecognizer(FaceRecognizerElem):
 		n_ngbr = 10
 		nbrs = NearestNeighbors(n_neighbors=n_ngbr, algorithm='ball_tree').fit(model_emb)
 		
-		bar = Bar('Processing', max = len(input_data))
+		# bar = Bar('Processing', max = len(input_data))
 
-		for d in range(len(input_data)):
-			faces = input_data[d].faces
+		for data in input_data:
+			emb_array = self.calculate_embeddings(data)
+
+			faces = data.faces
 
 			if len(faces):
-				distances, indices = nbrs.kneighbors(emb_array[d])
+				distances, indices = nbrs.kneighbors(emb_array)
 				
 				for f in range(len(faces)):
 					inds = indices[f]
@@ -156,8 +149,10 @@ class FacenetRecognizer(FaceRecognizerElem):
 
 					faces[f].set_person(person_name, confidence)
 
-			bar.next()
+				yield data
 
-		bar.finish()
+			# bar.next()
 
-		return input_data
+		# bar.finish()
+
+		# return input_data

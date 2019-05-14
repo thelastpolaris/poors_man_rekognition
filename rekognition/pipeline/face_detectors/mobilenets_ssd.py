@@ -1,3 +1,6 @@
+# Significant portion of the code is adopted from the following package that is licensed by Apache License 2.0
+# https://github.com/yeephycho/tensorflow-face-detection
+
 import numpy as np
 import tensorflow as tf
 import sys, os
@@ -11,6 +14,8 @@ from ...utils import label_map_util
 from ...utils import visualization_utils_color as vis_util
 
 from .face_detector import FaceDetectorElem
+import sys
+import objgraph
 
 class MobileNetsSSDFaceDetector(FaceDetectorElem):
 	def __init__(self, min_score_thresh=.7):
@@ -47,7 +52,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 			self._config.gpu_options.allow_growth = True
 
 	def run(self, input_data):
-		tf.reset_default_graph()
+		# tf.reset_default_graph()
 		sess = tf.Session(graph=self._detection_graph, config=self._config)
 
 		faces = []
@@ -59,6 +64,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 		
 		for data in input_data:
 			i += 1
+
 			image = data.image_data
 
 			if bar is None:
@@ -76,7 +82,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 			(boxes, scores, classes, num_detections) = sess.run(
 				[boxes, scores, classes, num_detections],
 				feed_dict={image_tensor: image_expanded})
-			
+
 			bar.next()
 
 			frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
@@ -89,14 +95,17 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 				min_score_thresh=self._min_score_thresh)
 
 			for f in range(len(frame_faces)):
-				data.add_face(frame_faces[f], face_boxes[f])					
+				data.add_face(frame_faces[f], face_boxes[f])
 				# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
 
-			frames.append(data)
+			# print("refcount {}".format(sys.getrefcount(image)))
+
+			# frames.append(data)
+			yield data
 			# if i > 100:
 				# break
 
-		bar.finish()
+		# bar.finish()
 
-		return frames
+		# return frames
 		

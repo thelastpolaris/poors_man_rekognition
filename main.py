@@ -43,8 +43,7 @@ if image:
 else:
 	datahandler = VideoHandlerElem()
 
-datahandler.max_frames = 1500
-
+datahandler.max_frames = 5000
 # Face Detector
 face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
 # face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
@@ -63,8 +62,8 @@ else:
 p.add_element(datahandler, input_path)
 p.add_element(face_detector, datahandler)
 p.add_element(face_recognizer, face_detector)
-p.add_element(jsonhandler, face_recognizer)
-p.add_element(output_hand, jsonhandler)
+# p.add_element(jsonhandler, face_recognizer)
+p.add_element(output_hand, face_recognizer)
 
 # Print the pipeline
 print(p)
