@@ -10,5 +10,5 @@
 *.weights
 *.webm
 *.JPG
-/.idea/
-/output/
+/.idea
+/output

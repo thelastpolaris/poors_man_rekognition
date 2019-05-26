@@ -1,5 +1,7 @@
 import av, cv2, abc
 from .data_handler import DataHandlerElem, Data
+from progress.bar import Bar
+
 
 class Frame(Data):
 	def __init__(self, pts, image_data):
@@ -12,18 +14,23 @@ class Frame(Data):
 
 		return data
 
-class VideoHandlerElem(DataHandlerElem):
-	def run(self, path_to_video):
-		super().run(path_to_video)
 
-		container = av.open(path_to_video)
+class VideoHandlerElem(DataHandlerElem):
+	def run(self, input_data):
+		container = av.open(self.input_path)
 		# Get video stream
 		stream = container.streams.video[0]
 		self.num_of_images = stream.frames
 		# stream.codec_context.skip_frame = 'NONKEY'
 
+		bar = None
+
+		print("Extracting frames from video")
 		for frame in container.decode(stream):
 			image = frame.to_rgb().to_ndarray()
+
+			if bar is None:
+				bar = Bar('Processing', max = self.num_of_images)
 			
 			img_height = image.shape[0]
 			img_width = image.shape[1]
@@ -35,6 +42,8 @@ class VideoHandlerElem(DataHandlerElem):
 			self._current_frame += 1
 			# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 			if self._current_frame < self._max_frames:
-				yield Frame(frame.pts, image)
+				input_data.append(Frame(frame.pts, image))
+				bar.next()
 			else:
+				bar.finish()
 				break

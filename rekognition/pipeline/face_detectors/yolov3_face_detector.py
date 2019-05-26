@@ -123,8 +123,6 @@ class YOLOv3FaceDetector(FaceDetectorElem):
 
 			bar.next()
 
-			del image
-
 			# if i > 50:
 				# break
 		

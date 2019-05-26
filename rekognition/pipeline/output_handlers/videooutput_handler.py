@@ -5,26 +5,20 @@ import av, os
 
 class VideoOutputHandler(OutputHandler):
 	def run(self, input_data):
-		initialized = False
-		# bar = Bar('Processing', max = len(input_data))
+
+		if not os.path.exists("output"):
+			os.mkdir("output")
+
+		container = av.open("output/" + self.output_name + '_output.mp4', mode='w')
+		stream = None
+
+		fps = 25
+
+		print("Saving processed video")
+		bar = Bar('Processing', max = len(input_data))
 
 		for data in input_data:
 			image = data.image_data
-
-			if initialized is not True:
-				filename = os.path.splitext(self.parent_pipeline.filename)[0]
-
-				if not os.path.exists("output"):
-					os.mkdir("output")
-
-				container = av.open("output/" + filename + '_output.ts', mode='w')
-				stream = None
-
-				fps = 25
-
-				initialized = True
-
-				# print("Saving processed video")
 
 			if stream is None:
 				[h, w] = image.shape[:2]
@@ -48,13 +42,13 @@ class VideoOutputHandler(OutputHandler):
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):
 				container.mux(packet)
-			# bar.next()
+			bar.next()
 
         # flush stream
 		for packet in stream.encode():
 			container.mux(packet)
 		
 		container.close()
-		# bar.finish()
+		bar.finish()
 
 		return input_data

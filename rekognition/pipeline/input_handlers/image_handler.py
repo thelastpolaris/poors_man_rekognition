@@ -10,12 +10,6 @@ class Image(Data):
 	def filename(self):
 		return self._filename
 
-	def get_JSON(self):
-		data = super().get_JSON()
-		data["filename"] = self._filename
-
-		return data
-
 class ImageHandlerElem(DataHandlerElem):
 	def run(self, path_to_folder):
 		path_to_folder = path_to_folder + "/"

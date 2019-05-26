@@ -1,6 +1,7 @@
 import argparse
 import os, sys
 from rekognition.pipeline.pipeline import Pipeline
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 # Import pipeline elements
 # Data Handlers
@@ -33,17 +34,15 @@ if os.path.isfile(input_path) != True and os.path.isdir(input_path) != True :
 	print("Input file/dir doesn't exist. Terminating.")
 	sys.exit()
 
-# create pipeline
-p = Pipeline()
-
 image = False
 # Data handlers
 if image:
-	datahandler = ImageHandlerElem()
+	datahandler = ImageHandlerElem(input_path)
 else:
-	datahandler = VideoHandlerElem()
+	datahandler = VideoHandlerElem(input_path)
 
-datahandler.max_frames = 5000
+datahandler.max_frames = 50
+
 # Face Detector
 face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
 # face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
@@ -52,18 +51,17 @@ face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
 face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")
 
 # Output Handler
-jsonhandler = JSONHandler()
+jsonhandler = JSONHandler("test")
 if image:
-	output_hand = ImageOutputHandler()
+	output_hand = ImageOutputHandler("test")
 else:
-	output_hand = VideoOutputHandler()
+	output_hand = VideoOutputHandler("test")
 
-# Construct the pipeline
-p.add_element(datahandler, input_path)
-p.add_element(face_detector, datahandler)
-p.add_element(face_recognizer, face_detector)
-# p.add_element(jsonhandler, face_recognizer)
-p.add_element(output_hand, face_recognizer)
+# create pipeline
+p = Pipeline([datahandler,
+			  face_detector,
+			  face_recognizer,
+			  output_hand])
 
 # Print the pipeline
 print(p)

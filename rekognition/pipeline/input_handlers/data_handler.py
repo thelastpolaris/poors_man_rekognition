@@ -69,10 +69,13 @@ class Data:
 		return self._faces
 
 	@property
-	def image_data(self):
+	def image_data(self, delete_data = False):
 		if type(self._image_data) == np.ndarray:
 			image_data = self._image_data
-			# self._image_data = None
+
+			if delete_data:
+				self._image_data = None
+
 			return image_data
 		return None
 	
@@ -97,10 +100,11 @@ class DataHandlerElem(PipelineElement):
 	_max_frames = None
 	_current_frame = 0
 
-	def __init__(self, max_frames = None):
-		_num_of_images = 0
-		_current_frame = 0 #counter
-		_max_frames = max_frames
+	def __init__(self, input_path, max_frames = None):
+		self._num_of_images = 0
+		self._current_frame = 0 #counter
+		self._max_frames = max_frames
+		self.input_path = input_path
 
 	@property
 	def max_frames(self):
@@ -114,13 +118,17 @@ class DataHandlerElem(PipelineElement):
 	def num_of_images(self):
 		return self._num_of_images
 
+	@property
+	def input_path(self):
+		return self._input_path
+
+	@input_path.setter
+	def input_path(self, input_path):
+		self._input_path = input_path
+
 	@num_of_images.setter
 	def num_of_images(self, num_of_images):
 		self._num_of_images = num_of_images
-		self.parent_pipeline.num_of_images = num_of_images
 
 		if self._max_frames == None:
 			self._max_frames = self._num_of_images
-
-	def run(self, path_to_file):
-		self.parent_pipeline.path_to_file = path_to_file
