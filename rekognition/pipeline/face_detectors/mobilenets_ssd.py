@@ -2,6 +2,7 @@ import numpy as np
 import sys, os
 import tensorflow as tf
 from progress.bar import Bar
+from ..kernel import Kernel
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -12,7 +13,7 @@ from ...utils import visualization_utils_color as vis_util
 
 # from .face_detector import FaceDetectorElem
 
-class MobileNetsSSDFaceDetector():
+class MobileNetsSSDFaceDetector(Kernel):
 	def __init__(self, min_score_thresh=.7):
 		super().__init__()
 		self._model_path = parentDir + '/../model/mnssd_frozen_graph.pb'
@@ -47,7 +48,7 @@ class MobileNetsSSDFaceDetector():
 			# self._config.gpu_options.allow_growth = True
 			self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
 
-	def run(self, frames_reader, connection):
+	def predict(self, connection, frames_reader):
 		sess = tf.Session(graph=self._detection_graph, config=self._config)
 
 		print("Detecting faces in video")
