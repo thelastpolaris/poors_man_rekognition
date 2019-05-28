@@ -26,11 +26,11 @@ void VideoHandlerElem::run() {
               if (frame.empty())
                 break;
 
-              cv::resize(frame, frame, cv::Size(), 0.5, 0.5);
+//              cv::resize(frame, frame, cv::Size(), 0.5, 0.5);
               frames[i] = frame;
 
 //               Display the resulting frame
-              imshow( "Frame", frame );
+//              imshow( "Frame", frame );
 
               // Press  ESC on keyboard to exit
               char c=(char) cv::waitKey(25);

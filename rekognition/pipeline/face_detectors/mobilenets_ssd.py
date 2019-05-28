@@ -10,9 +10,9 @@ parentDir = os.path.dirname(fileDir)
 from ...utils import label_map_util
 from ...utils import visualization_utils_color as vis_util
 
-from .face_detector import FaceDetectorElem
+# from .face_detector import FaceDetectorElem
 
-class MobileNetsSSDFaceDetector(FaceDetectorElem):
+class MobileNetsSSDFaceDetector():
 	def __init__(self, min_score_thresh=.7):
 		super().__init__()
 		self._model_path = parentDir + '/../model/mnssd_frozen_graph.pb'
@@ -44,51 +44,64 @@ class MobileNetsSSDFaceDetector(FaceDetectorElem):
 
 		with self._detection_graph.as_default():
 			self._config = tf.ConfigProto()
-			self._config.gpu_options.allow_growth = True
+			# self._config.gpu_options.allow_growth = True
+			self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
 
-	def run(self, input_data):
+	def run(self, frames_reader, connection):
 		sess = tf.Session(graph=self._detection_graph, config=self._config)
-
-		faces = []
-		frames = []
 
 		print("Detecting faces in video")
 		bar = None
 		i = 0
-		
-		for data in input_data:
-			i += 1
-			image = data.image_data
 
-			if bar is None:
-				bar = Bar('Processing', max = len(input_data))
+		all_frames_pts = []
+		all_frames_faces = []
 
-			image_expanded = np.expand_dims(image, axis=0)
-			image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
+		for frames_data, frames_pts in frames_reader.get_frames(100):
+			if i > 100:
+				break
+			for c in range(0, len(frames_data)):
+				data = frames_data[c]
+				i += 1
+				image = data
 
-			boxes = self._detection_graph.get_tensor_by_name('detection_boxes:0')
+				# if bar is None:
+				# 	bar = Bar('Processing', max = len(input_data))
 
-			scores = self._detection_graph.get_tensor_by_name('detection_scores:0')
-			classes = self._detection_graph.get_tensor_by_name('detection_classes:0')
-			num_detections = self._detection_graph.get_tensor_by_name('num_detections:0')
+				image_expanded = np.expand_dims(image, axis=0)
+				image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
 
-			(boxes, scores, classes, num_detections) = sess.run(
-				[boxes, scores, classes, num_detections],
-				feed_dict={image_tensor: image_expanded})
-			
-			bar.next()
+				boxes = self._detection_graph.get_tensor_by_name('detection_boxes:0')
 
-			frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
-				image,
-				np.squeeze(boxes),
-				np.squeeze(classes).astype(np.int32),
-				np.squeeze(scores),
-				self._category_index,
-				use_normalized_coordinates=True,
-				min_score_thresh=self._min_score_thresh)
+				scores = self._detection_graph.get_tensor_by_name('detection_scores:0')
+				classes = self._detection_graph.get_tensor_by_name('detection_classes:0')
+				num_detections = self._detection_graph.get_tensor_by_name('num_detections:0')
 
-			for f in range(len(frame_faces)):
-				data.add_face(frame_faces[f], face_boxes[f])					
-				# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
+				(boxes, scores, classes, num_detections) = sess.run(
+					[boxes, scores, classes, num_detections],
+					feed_dict={image_tensor: image_expanded})
 
-		bar.finish()
+				# bar.next()
+
+				frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
+					image,
+					np.squeeze(boxes),
+					np.squeeze(classes).astype(np.int32),
+					np.squeeze(scores),
+					self._category_index,
+					use_normalized_coordinates=True,
+					min_score_thresh=self._min_score_thresh)
+
+				all_frames_faces.append(frame_faces)
+				all_frames_pts.append(frames_pts[c])
+
+		connection.send((all_frames_faces, all_frames_pts))
+
+		return
+
+
+					# for f in range(len(frame_faces)):
+						# data.add_face(frame_faces[f], face_boxes[f])
+						# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
+
+				# bar.finish()

@@ -53,70 +53,12 @@ class Face:
 
 		return face
 
-
-# can be either image or video frame
-class Data:
-	def __init__(self, image_data):
-		self._image_data = image_data
-		self._faces = []
-
-	def add_face(self, face_image, bounding_box):
-		face = Face(face_image, bounding_box)
-		self._faces.append(face)
-
-	@property
-	def faces(self):
-		return self._faces
-
-	@property
-	def image_data(self, delete_data = False):
-		if type(self._image_data) == np.ndarray:
-			image_data = self._image_data
-
-			if delete_data:
-				self._image_data = None
-
-			return image_data
-		return None
-	
-	def get_JSON(self):
-		data = {}
-
-		faces = []
-
-		for face in self._faces:
-			f = dict()
-
-			f["face"] = face.get_JSON()
-
-			# f["bounding_box"]
-			faces.append(f)
-
-		data["faces"] = faces
-		return data
-
-
 class DataHandlerElem(PipelineElement):
 	_max_frames = None
 	_current_frame = 0
 
-	def __init__(self, input_path, max_frames = None):
-		self._num_of_images = 0
-		self._current_frame = 0 #counter
-		self._max_frames = max_frames
+	def __init__(self, input_path):
 		self.input_path = input_path
-
-	@property
-	def max_frames(self):
-		return self._max_frames
-
-	@max_frames.setter
-	def max_frames(self, max_frames):
-		self._max_frames = max_frames
-
-	@property
-	def num_of_images(self):
-		return self._num_of_images
 
 	@property
 	def input_path(self):
@@ -125,10 +67,3 @@ class DataHandlerElem(PipelineElement):
 	@input_path.setter
 	def input_path(self, input_path):
 		self._input_path = input_path
-
-	@num_of_images.setter
-	def num_of_images(self, num_of_images):
-		self._num_of_images = num_of_images
-
-		if self._max_frames == None:
-			self._max_frames = self._num_of_images

@@ -1,4 +1,17 @@
-from multiprocessing import Process, Manager
+class Data():
+	def __init__(self):
+		self._frames_reader = None
+		self._frames_pts = None
+		self._frames_faces = None
+
+	@property
+	def frames_reader(self):
+		return self._frames_reader
+
+	@frames_reader.setter
+	def frames_reader(self, frames_reader):
+		self._frames_reader = frames_reader
+
 
 class Pipeline:
 	def __init__(self, elements):
@@ -8,6 +21,7 @@ class Pipeline:
 
 		self._results = []
 		self._num_of_images = 0
+		self._data_holder = Data()
 		# self._path_to_file = None
 
 	# @property
@@ -25,6 +39,7 @@ class Pipeline:
 	# def path_to_file(self, path_to_file):
 	# 	self._path_to_file = path_to_file
 
+
 	@property
 	def num_of_images(self):
 		return self._num_of_images
@@ -40,18 +55,23 @@ class Pipeline:
 
 	def run(self):
 		# Self._results will be cleared in the DataHandler
-		manager = Manager()
-		ns = manager.Namespace()
-		self._results = []
-		ns.input_data = []
-		results = Manager().list(self._results)
+		assert (len(self._elements)), "Pipeline needs to have at least one PipelineElement"
 
 		for elem in self._elements:
-			p = Process(target=elem.run, args=(results,))
-			p.start()
-			p.join()
-			frame = results[0]
-			# elem.run(self._results)
+			elem.run(self._data_holder)
+
+		# manager = Manager()
+		# ns = manager.Namespace()
+		# self._results = []
+		# ns.input_data = []
+		# results = Manager().list(self._results)
+		#
+		# for elem in self._elements:
+		# 	p = Process(target=elem.run, args=(results,))
+		# 	p.start()
+		# 	p.join()
+		# 	frame = results[0]
+		# 	# elem.run(self._results)
 
 		return True
 
