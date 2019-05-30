@@ -4,10 +4,9 @@ import abc
 from ..pipeline_element import PipelineElement
 
 class FaceRecognizerElem(PipelineElement):
-	# Pure virtual function
-	@abc.abstractmethod
-	def train():
-		pass
+	def __init__(self, kernel):
+		self.kernel = kernel
 
-	def run(self, path_to_video):
-		pass
+	def run(self, data):
+		results = self.kernel.run((data._frames_faces, ))
+		# print(results)

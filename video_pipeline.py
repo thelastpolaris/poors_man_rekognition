@@ -10,6 +10,8 @@ from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 # Computer Vision
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
+
+from rekognition.pipeline.recognizers.face_recognizer import FaceRecognizerElem
 from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
 
 # Output
@@ -25,15 +27,16 @@ args = vars(ap.parse_args())
 
 input_path = args["input"]
 
-datahandler = VideoHandlerElem(input_path, 1000)
+datahandler = VideoHandlerElem(input_path, 10)
 # datahandler.max_frames = 1000
 
 face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score_thresh=.5))
-face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")
+face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
 output_hand = VideoOutputHandler("test")
 
 pipeline = Pipeline([datahandler,
-                     face_detector])
+                     face_detector,
+                     face_recognizer])
 
 print(pipeline)
 

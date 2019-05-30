@@ -46,7 +46,7 @@ class MobileNetsSSDFaceDetector(Kernel):
 		with self._detection_graph.as_default():
 			self._config = tf.ConfigProto()
 			# self._config.gpu_options.allow_growth = True
-			self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
+			# self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
 
 	def predict(self, connection, frames_reader):
 		sess = tf.Session(graph=self._detection_graph, config=self._config)
@@ -58,16 +58,14 @@ class MobileNetsSSDFaceDetector(Kernel):
 		all_frames_pts = []
 		all_frames_faces = []
 
-		for frames_data, frames_pts in frames_reader.get_frames(100):
-			if i > 100:
-				break
+		for frames_data, frames_pts in frames_reader.get_frames(1):
 			for c in range(0, len(frames_data)):
 				data = frames_data[c]
 				i += 1
 				image = data
 
-				# if bar is None:
-				# 	bar = Bar('Processing', max = len(input_data))
+				if bar is None:
+					bar = Bar('Processing', max = frames_reader.frames_num)
 
 				image_expanded = np.expand_dims(image, axis=0)
 				image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
@@ -82,7 +80,7 @@ class MobileNetsSSDFaceDetector(Kernel):
 					[boxes, scores, classes, num_detections],
 					feed_dict={image_tensor: image_expanded})
 
-				# bar.next()
+				bar.next()
 
 				frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
 					image,
@@ -96,13 +94,9 @@ class MobileNetsSSDFaceDetector(Kernel):
 				all_frames_faces.append(frame_faces)
 				all_frames_pts.append(frames_pts[c])
 
+		if bar:
+			bar.finish()
+
 		connection.send((all_frames_faces, all_frames_pts))
 
 		return
-
-
-					# for f in range(len(frame_faces)):
-						# data.add_face(frame_faces[f], face_boxes[f])
-						# vis_util.save_image_array_as_png(frame_faces[f], "images/{}_{}.png".format(i, f))
-
-				# bar.finish()
