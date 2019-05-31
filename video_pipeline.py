@@ -5,6 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 # Import pipeline elements
 from rekognition.pipeline.pipeline import Pipeline
 # Data Handlers
+from rekognition.pipeline.input_handlers.preprocessors import ResizeImage, InvertColors, Lambda
 from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 
 # Computer Vision
@@ -27,7 +28,11 @@ args = vars(ap.parse_args())
 
 input_path = args["input"]
 
-datahandler = VideoHandlerElem(input_path, 10)
+resizer = ResizeImage(640, 480)
+invert = InvertColors()
+lambd = Lambda(lambda image: image)
+
+datahandler = VideoHandlerElem(input_path, [resizer, invert, lambd], max_frames = 1000)
 # datahandler.max_frames = 1000
 
 face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score_thresh=.5))
