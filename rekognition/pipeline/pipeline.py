@@ -2,7 +2,8 @@ class Data():
 	def __init__(self):
 		self._frames_reader = None
 		self._frames_pts = None
-		self._frames_faces = None
+		self._frames_face_boxes = None
+		self._frames_face_names = None
 
 	@property
 	def frames_reader(self):
@@ -59,19 +60,6 @@ class Pipeline:
 
 		for elem in self._elements:
 			elem.run(self._data_holder)
-
-		# manager = Manager()
-		# ns = manager.Namespace()
-		# self._results = []
-		# ns.input_data = []
-		# results = Manager().list(self._results)
-		#
-		# for elem in self._elements:
-		# 	p = Process(target=elem.run, args=(results,))
-		# 	p.start()
-		# 	p.join()
-		# 	frame = results[0]
-		# 	# elem.run(self._results)
 
 		return True
 

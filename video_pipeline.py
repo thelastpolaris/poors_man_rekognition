@@ -32,7 +32,7 @@ resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
-datahandler = VideoHandlerElem(input_path, [resizer, invert, lambd], max_frames = 1000)
+datahandler = VideoHandlerElem(input_path, [resizer])
 # datahandler.max_frames = 1000
 
 face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score_thresh=.5))
@@ -41,7 +41,8 @@ output_hand = VideoOutputHandler("test")
 
 pipeline = Pipeline([datahandler,
                      face_detector,
-                     face_recognizer])
+                     face_recognizer,
+                     output_hand])
 
 print(pipeline)
 

@@ -56,47 +56,46 @@ class MobileNetsSSDFaceDetector(Kernel):
 		i = 0
 
 		all_frames_pts = []
-		all_frames_faces = []
+		all_frames_face_boxes = []
 
-		for frames_data, frames_pts in frames_reader.get_frames(1):
-			for c in range(0, len(frames_data)):
-				data = frames_data[c]
-				i += 1
-				image = data
+		frames_generator = frames_reader.get_frames()
 
-				if bar is None:
-					bar = Bar('Processing', max = frames_reader.frames_num)
+		for frames_data, frames_pts in frames_generator:
+			i += 1
+			image = frames_data
 
-				image_expanded = np.expand_dims(image, axis=0)
-				image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
+			if bar is None:
+				bar = Bar('Processing', max = frames_reader.frames_num)
 
-				boxes = self._detection_graph.get_tensor_by_name('detection_boxes:0')
+			image_expanded = np.expand_dims(image, axis=0)
+			image_tensor = self._detection_graph.get_tensor_by_name('image_tensor:0')
 
-				scores = self._detection_graph.get_tensor_by_name('detection_scores:0')
-				classes = self._detection_graph.get_tensor_by_name('detection_classes:0')
-				num_detections = self._detection_graph.get_tensor_by_name('num_detections:0')
+			boxes = self._detection_graph.get_tensor_by_name('detection_boxes:0')
 
-				(boxes, scores, classes, num_detections) = sess.run(
-					[boxes, scores, classes, num_detections],
-					feed_dict={image_tensor: image_expanded})
+			scores = self._detection_graph.get_tensor_by_name('detection_scores:0')
+			classes = self._detection_graph.get_tensor_by_name('detection_classes:0')
+			num_detections = self._detection_graph.get_tensor_by_name('num_detections:0')
 
-				bar.next()
+			(boxes, scores, classes, num_detections) = sess.run(
+				[boxes, scores, classes, num_detections],
+				feed_dict={image_tensor: image_expanded})
 
-				frame_faces, face_boxes = vis_util.get_image_from_bounding_box(
-					image,
-					np.squeeze(boxes),
-					np.squeeze(classes).astype(np.int32),
-					np.squeeze(scores),
-					self._category_index,
-					use_normalized_coordinates=True,
-					min_score_thresh=self._min_score_thresh)
+			bar.next()
 
-				all_frames_faces.append(frame_faces)
-				all_frames_pts.append(frames_pts[c])
+			frame_boxes = []
+			scores = np.squeeze(scores)
+			boxes = np.squeeze(boxes)
+
+			for b in range(len(boxes)):
+				if scores[b] > self._min_score_thresh:
+					frame_boxes.append(boxes[b])
+
+			all_frames_face_boxes.append(frame_boxes)
+			all_frames_pts.append(frames_pts)
 
 		if bar:
 			bar.finish()
 
-		connection.send((all_frames_faces, all_frames_pts))
+		connection.send((all_frames_face_boxes, all_frames_pts))
 
 		return

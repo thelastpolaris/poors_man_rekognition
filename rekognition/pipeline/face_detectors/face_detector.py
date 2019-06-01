@@ -7,4 +7,4 @@ class FaceDetectorElem(PipelineElement):
 		self.kernel = kernel
 
 	def run(self, data):
-		data._frames_faces, data._frames_pts = self.kernel.run((data.frames_reader, ))
+		data._frames_face_boxes, data._frames_pts = self.kernel.run((data.frames_reader, ))

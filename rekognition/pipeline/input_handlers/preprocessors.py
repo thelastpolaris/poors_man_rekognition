@@ -23,7 +23,7 @@ class ResizeImage(Preprocessor):
             ratio = self._min_width/width
             image = cv2.resize(image, dsize=(int(width*ratio), int(height*ratio)), interpolation=cv2.INTER_CUBIC)
 
-        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return image
 
 class InvertColors(Preprocessor):
     def process(self, image):

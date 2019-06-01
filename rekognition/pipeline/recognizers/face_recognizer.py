@@ -8,5 +8,4 @@ class FaceRecognizerElem(PipelineElement):
 		self.kernel = kernel
 
 	def run(self, data):
-		results = self.kernel.run((data._frames_faces, ))
-		# print(results)
+		data._frames_face_names = self.kernel.run((data._frames_face_boxes, data.frames_reader ))
