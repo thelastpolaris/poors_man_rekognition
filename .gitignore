@@ -12,3 +12,4 @@
 *.JPG
 /.idea
 /output
+*.h5

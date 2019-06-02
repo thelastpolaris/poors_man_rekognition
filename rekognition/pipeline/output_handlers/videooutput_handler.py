@@ -1,5 +1,6 @@
 from .output_handler import OutputHandler
 from ...utils import visualization_utils_color as vis_util
+from ...utils import utils
 from progress.bar import Bar
 import av, os
 from PIL import Image
@@ -46,7 +47,8 @@ class VideoOutputHandler(OutputHandler):
 													 xmin,
 													 ymax,
 													 xmax,
-													 display_str_list=[name])
+													 display_str_list=[name],
+													 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

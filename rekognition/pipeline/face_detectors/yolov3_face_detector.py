@@ -2,129 +2,126 @@ import numpy as np
 import cv2, os
 from progress.bar import Bar
 from .face_detector import FaceDetectorElem
+from ..kernel import Kernel
+
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import load_model
+from PIL import ImageDraw, Image
+
+from ...model.yolov3.model import eval
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
-def refined_box(left, top, width, height):
-    right = left + width
-    bottom = top + height
-
-    original_vert_height = bottom - top
-    top = int(top + original_vert_height * 0.05)
-    bottom = int(bottom - original_vert_height * 0.01)
-
-    margin = ((bottom - top) - (right - left)) // 2
-    left = left - margin if (bottom - top - right + left) % 2 == 0 else left - margin - 1
-
-    right = right + margin
-
-    return left, top, right, bottom
-
-class YOLOv3FaceDetector(FaceDetectorElem):
-	def __init__(self, min_score_thresh=.5):
+class YOLOv3FaceDetector(Kernel):
+	def __init__(self, min_score=.5, iou = 0.45):
 		super().__init__()
-		model_weights = parentDir + "/../model/yolov3/yolov3-wider_16000.weights"
-		model_cfg = parentDir + "/../model/yolov3/yolov3-face.cfg"
+		self._model_path = parentDir + "/../model/yolov3/YOLO_Face.h5"
+		self._class_names = ["face"]
 
-		self._net = cv2.dnn.readNetFromDarknet(model_cfg, model_weights)
-		self._net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-		self._net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+		self._anchors = np.array([10.0, 13.0, 16.0, 30.0, 33.0, 23.0,
+								  30.0, 61.0, 62.0, 45.0, 59.0, 119.0,
+								  116.0, 90.0, 156.0, 198.0, 373.0, 326.0]).reshape(-1,2)
 
-		self._min_score_thresh = min_score_thresh
+		self._min_score = min_score
+		self._iou = iou
 
-	# Get the names of the output layers
-	def get_outputs_names(self):
-		# Get the names of all the layers in the network
-		layers_names = self._net.getLayerNames()
+	def _generate(self):
+		model_path = os.path.expanduser(self._model_path)
+		assert model_path.endswith(
+			'.h5'), 'Keras model or weights must be a .h5 file'
 
-		# Get the names of the output layers, i.e. the layers with unconnected
-		# outputs
-		return [layers_names[i[0] - 1] for i in self._net.getUnconnectedOutLayers()]
+		# load model, or construct model and load weights
+		num_anchors = len(self._anchors)
+		num_classes = len(self._class_names)
+		try:
+			self.yolo_model = load_model(model_path, compile=False)
+		except:
+			# make sure model, anchors and classes match
+			self.yolo_model.load_weights(self._model_path)
+		else:
+			assert self.yolo_model.layers[-1].output_shape[-1] == \
+				   num_anchors / len(self.yolo_model.output) * (
+						   num_classes + 5), \
+				'Mismatch between model and given anchor and class sizes'
+		print(
+			'*** {} model, anchors, and classes loaded.'.format(model_path))
 
+		# generate output tensor targets for filtered bounding boxes.
+		self.input_image_shape = K.placeholder(shape=(2,))
+		boxes, scores, classes = eval(self.yolo_model.output, self._anchors,
+									  len(self._class_names),
+									  self.input_image_shape,
+									  score_threshold=self._min_score,
+									  iou_threshold=self._iou)
+		return boxes, scores, classes
 
-	def get_boxes(self, outs, conf_threshold, nms_threshold, image):
-		image_height = image.shape[0]
-		image_width = image.shape[1]
+	def letterbox_image(self, image, size):
+		'''Resize image with unchanged aspect ratio using padding'''
 
-		# Scan through all the bounding boxes output from the network and keep only
-		# the ones with high confidence scores. Assign the box's class label as the
-		# class with the highest score.
-		confidences = []
-		boxes = []
-		final_boxes = []
-		for out in outs:
-			for detection in out:
-				scores = detection[5:]
-				class_id = np.argmax(scores)
-				confidence = scores[class_id]
-				if confidence > conf_threshold:
-					center_x = int(detection[0] * image_width)
-					center_y = int(detection[1] * image_height)
-					width = int(detection[2] * image_width)
-					height = int(detection[3] * image_height)
-					left = int(center_x - width / 2)
-					top = int(center_y - height / 2)
-					confidences.append(float(confidence))
-					boxes.append([left, top, width, height])
+		img_width, img_height = image.size
+		w, h = size
+		scale = min(w / img_width, h / img_height)
+		nw = int(img_width * scale)
+		nh = int(img_height * scale)
 
-		# Perform non maximum suppression to eliminate redundant
-		# overlapping boxes with lower confidences.
-		indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+		image = image.resize((nw, nh), Image.BICUBIC)
+		new_image = Image.new('RGB', size, (128, 128, 128))
+		new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
+		return new_image
 
-		for i in indices:
-			i = i[0]
-			box = boxes[i]
-			left = box[0]
-			top = box[1]
-			width = box[2]
-			height = box[3]
-			final_boxes.append(boxes[i])
-
-		return final_boxes 
+	def predict(self, connection, frames_reader):
+		self._sess = K.get_session()
+		self._boxes, self._scores, self._classes = self._generate()
 
 
-	def run(self, input_data):
-		frames = []
+		print("Detecting faces in video")
 		bar = None
 		i = 0
 
-		for data in input_data:
-			i += 1
+		all_frames_pts = []
+		all_frames_face_boxes = []
+
+		frames_generator = frames_reader.get_frames(1)
+
+		for frames_data, frames_pts in frames_generator:
+			image = Image.fromarray(frames_data)
+			frame_boxes = []
+
 			if bar is None:
-				bar = Bar('Processing', max = self.parent_pipeline.num_of_images)
+				bar = Bar('Processing', max=frames_reader.frames_num)
 
-			# Create a 4D blob from a frame.
-			image = data.image_data
-			
-			image_height = image.shape[0]
-			image_width = image.shape[1]
+			new_image_size = (image.width - (image.width % 32),
+								  image.height - (image.height % 32))
+			boxed_image = self.letterbox_image(image, new_image_size)
 
-			blob = cv2.dnn.blobFromImage(image, 1 / 255, (416, 416), [0, 0, 0], 1, crop=False)
+			image_data = np.array(boxed_image, dtype='float32')
 
-        	# Sets the input to the network
-			self._net.setInput(blob)
+			image_data /= 255.
+			# add batch dimension
+			image_data = np.expand_dims(image_data, 0)
+			boxes, scores, classes = self._sess.run(
+				[self._boxes, self._scores, self._classes],
+				feed_dict={
+					self.yolo_model.input: image_data,
+					self.input_image_shape: [image.size[1], image.size[0]],
+					K.learning_phase(): 0
+				})
 
-        	# Runs the forward pass to get output of the output layers
-			outs = self._net.forward(self.get_outputs_names())
-			
-			boxes = self.get_boxes(outs, self._min_score_thresh, 0.4, image)
-			for box in boxes:
-				# Check whether box is real
-				if (all(b > 0 for b in box)) == True:
-					left, top, right, bottom = refined_box(box[0], box[1], box[2], box[3])
+			for b in range(len(boxes)):
+				if scores[b] > self._min_score:
+					frame_boxes.append(boxes[b])
 
-					face = image[int(top):int(bottom), int(left):int(right)]
-					# Output relative coordinates
-					data.add_face(face, [top/image_height, left/image_width, bottom/image_height, right/image_width])
+			all_frames_face_boxes.append(frame_boxes)
+			all_frames_pts.append(frames_pts)
 
-			frames.append(data)
-
+			i += 1
 			bar.next()
 
-			# if i > 50:
-				# break
-		
-		bar.finish()
-		return frames
+		if bar:
+			bar.finish()
+
+		connection.send((all_frames_face_boxes, all_frames_pts))
+
+		return

@@ -14,12 +14,12 @@ from ...utils import visualization_utils_color as vis_util
 # from .face_detector import FaceDetectorElem
 
 class MobileNetsSSDFaceDetector(Kernel):
-	def __init__(self, min_score_thresh=.7):
+	def __init__(self, min_score=.7):
 		super().__init__()
 		self._model_path = parentDir + '/../model/mnssd_frozen_graph.pb'
 		self._labels_path = parentDir + '/../protos/face_label_map.pbtxt'
 
-		self._min_score_thresh = min_score_thresh
+		self._min_score = min_score
 
 		self._classes_num = 2
 
@@ -87,7 +87,7 @@ class MobileNetsSSDFaceDetector(Kernel):
 			boxes = np.squeeze(boxes)
 
 			for b in range(len(boxes)):
-				if scores[b] > self._min_score_thresh:
+				if scores[b] > self._min_score:
 					frame_boxes.append(boxes[b])
 
 			all_frames_face_boxes.append(frame_boxes)
