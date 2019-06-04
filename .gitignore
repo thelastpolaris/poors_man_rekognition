@@ -1,3 +1,4 @@
+# Ignore
 *.pyc
 *.mp4
 *.avi
@@ -13,3 +14,7 @@
 /.idea
 /output
 *.h5
+*.pth
+
+# Allow
+!/resources/static/*.png
