@@ -12,6 +12,7 @@ from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
 from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
+from rekognition.pipeline.face_detectors.dsfd import DSFDFaceDetector
 
 from rekognition.pipeline.recognizers.face_recognizer import FaceRecognizerElem
 from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
@@ -33,11 +34,12 @@ resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
-datahandler = VideoHandlerElem(input_path, [resizer])
+datahandler = VideoHandlerElem(input_path, [resizer], 100)
 # datahandler.max_frames = 1000
 
-face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score=.5))
+# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score=.5))
 # face_detector = FaceDetectorElem(YOLOv3FaceDetector(min_score=.5))
+face_detector = FaceDetectorElem(DSFDFaceDetector(min_score=.5))
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
 output_hand = VideoOutputHandler("test2")
 
