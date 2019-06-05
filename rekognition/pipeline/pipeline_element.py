@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 # Abstract class
 class PipelineElement(ABC):
-	def __init__(self):
+	def __init__(self, kernel = None):
 		self._parent_pipeline = None
-		self._kernel = None
+		self._kernel = kernel
 
 	@property
 	def parent_pipeline(self):
@@ -26,3 +26,9 @@ class PipelineElement(ABC):
 	@abstractmethod
 	def run(self, **args):
 		pass
+
+	def __str__(self):
+		if self._kernel:
+			return str(self.__class__.__name__) + "({})".format(str(self._kernel.__class__.__name__))
+		else:
+			return str(self.__class__.__name__)

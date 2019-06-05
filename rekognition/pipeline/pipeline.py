@@ -1,4 +1,4 @@
-class Data():
+class Data:
 	def __init__(self):
 		self._frames_reader = None
 		self._frames_pts = None
@@ -56,7 +56,7 @@ class Pipeline:
 
 		for i in range(0, elems_len):
 			elem = self._elements[i]
-			output += str(elem.__class__.__name__)
+			output += elem.__str__()
 			
 			if i != elems_len - 1:
 				output += "-->"

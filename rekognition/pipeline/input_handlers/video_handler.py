@@ -1,7 +1,9 @@
 from .data_handler import DataHandlerElem
 import av
+from ..pipeline_element import PipelineElement
 
-class VideoFrames():
+
+class VideoFrames:
 	def __init__(self, container, stream, preprocessors = [], max_frames = 0, input_path = ""):
 		self._container = container
 		self._counter = 0
@@ -54,8 +56,9 @@ class VideoFrames():
 		self._container.close()
 		return None, None
 
-class VideoHandlerElem(DataHandlerElem):
+class VideoHandlerElem(PipelineElement):
 	def __init__(self, preprocessors = None):
+		super().__init__()
 		self.input_path = None
 		self._max_frames = 0
 		self._preprocessors = preprocessors
@@ -77,3 +80,18 @@ class VideoHandlerElem(DataHandlerElem):
 	@max_frames.setter
 	def max_frames(self, max_frames):
 		self._max_frames = max_frames
+
+	def __str__(self):
+		output = ""
+
+		# Print preprocessors
+		elems_len = len(self._preprocessors)
+
+		for i in range(elems_len):
+			elem = self._preprocessors[i]
+			output += str(elem.__class__.__name__)
+
+			if i != elems_len - 1:
+				output += ", "
+
+		return str(self.__class__.__name__) + "({})".format(output)

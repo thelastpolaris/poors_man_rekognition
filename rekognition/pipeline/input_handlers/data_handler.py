@@ -54,16 +54,5 @@ class Face:
 		return face
 
 class DataHandlerElem(PipelineElement):
-	_max_frames = None
-	_current_frame = 0
-
-	def __init__(self, input_path):
-		self.input_path = input_path
-
-	@property
-	def input_path(self):
-		return self._input_path
-
-	@input_path.setter
-	def input_path(self, input_path):
-		self._input_path = input_path
+	def __init__(self):
+		super().__init__()
