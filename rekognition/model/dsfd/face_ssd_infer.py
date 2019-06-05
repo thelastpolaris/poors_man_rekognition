@@ -132,7 +132,7 @@ class SSD(nn.Module):
             output = torch.cat((face_loc, face_conf), 2)
         return output
 
-    def detect_on_image(self, source_image, target_size, device, is_pad=False, keep_thresh=0.3):
+    def detect_on_image(self, source_image, target_size, device, is_pad=False):
 
         image, shift_h_scaled, shift_w_scaled, scale = resize_image(source_image, target_size, is_pad=is_pad)
 
@@ -142,12 +142,14 @@ class SSD(nn.Module):
         detections = self.forward(x).cpu().numpy()
 
         scores = detections[0, 1, :, 0]
-        keep_idxs = scores > keep_thresh  # find keeping indexes
+        keep_idxs = scores != 0  # find keeping indexes
         detections = detections[0, 1, keep_idxs, :]  # select detections over threshold
-        detections = detections[:, [1, 2, 3, 4]]  # reorder
 
-        detections[:, [0, 2]] -= shift_w_scaled  # 0 or pad percent from left corner
-        detections[:, [1, 3]] -= shift_h_scaled  # 0 or pad percent from top
-        detections[:, :4] *= scale
+        boxes = detections[:, [1, 2, 3, 4]]  # reorder
+        scores = detections[:, 0]
 
-        return detections
+        boxes[:, [0, 2]] -= shift_w_scaled  # 0 or pad percent from left corner
+        boxes[:, [1, 3]] -= shift_h_scaled  # 0 or pad percent from top
+        boxes[:, :4] *= scale
+
+        return scores, boxes

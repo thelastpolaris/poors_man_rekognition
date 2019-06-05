@@ -34,14 +34,14 @@ resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
-datahandler = VideoHandlerElem(input_path, [resizer], 100)
+datahandler = VideoHandlerElem([resizer])
 # datahandler.max_frames = 1000
 
-# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector(min_score=.5))
-# face_detector = FaceDetectorElem(YOLOv3FaceDetector(min_score=.5))
-face_detector = FaceDetectorElem(DSFDFaceDetector(min_score=.5))
+face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+# face_detector = FaceDetectorElem(DSFDFaceDetector())
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
-output_hand = VideoOutputHandler("test2")
+output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
                      face_detector,
@@ -50,4 +50,6 @@ pipeline = Pipeline([datahandler,
 
 print(pipeline)
 
-pipeline.run()
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100},
+              face_detector: {"min_score": 0.5},
+              output_hand: {"output_name": "test"}})

@@ -1,6 +1,5 @@
 from .data_handler import DataHandlerElem
 import av
-from ...utils import visualization_utils_color as vis_util
 
 class VideoFrames():
 	def __init__(self, container, stream, preprocessors = [], max_frames = 0, input_path = ""):
@@ -36,8 +35,9 @@ class VideoFrames():
 			image = frame.to_rgb().to_ndarray()
 
 			# Preprocess the data
-			for p in self._preprocessors:
-				image = p.process(image)
+			if self._preprocessors:
+				for p in self._preprocessors:
+					image = p.process(image)
 
 			self._counter += 1
 
@@ -55,12 +55,15 @@ class VideoFrames():
 		return None, None
 
 class VideoHandlerElem(DataHandlerElem):
-	def __init__(self, input_path, preprocessors = [], max_frames = 0):
-		self.input_path = input_path
-		self._max_frames = max_frames
+	def __init__(self, preprocessors = None):
+		self.input_path = None
+		self._max_frames = 0
 		self._preprocessors = preprocessors
 
-	def run(self, data):
+	def run(self, data, input_path, max_frames = 0):
+		self.input_path = input_path
+		self._max_frames = max_frames
+
 		container = av.open(self.input_path)
 		# Get video stream
 		stream = container.streams.video[0]

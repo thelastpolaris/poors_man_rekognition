@@ -1,8 +1,7 @@
-import abc
-from .kernel import Kernel
+from abc import ABC, abstractmethod
 
 # Abstract class
-class PipelineElement:
+class PipelineElement(ABC):
 	def __init__(self):
 		self._parent_pipeline = None
 		self._kernel = None
@@ -24,6 +23,6 @@ class PipelineElement:
 		self._kernel = kernel
 
 	# Pure virtual function
-	@abc.abstractmethod
-	def run(self, input_data):
+	@abstractmethod
+	def run(self, **args):
 		pass

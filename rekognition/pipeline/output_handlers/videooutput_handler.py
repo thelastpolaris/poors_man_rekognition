@@ -6,12 +6,11 @@ import av, os
 from PIL import Image
 
 class VideoOutputHandler(OutputHandler):
-	def run(self, data):
-
+	def run(self, data, output_name):
 		if not os.path.exists("output"):
 			os.mkdir("output")
 
-		container = av.open("output/" + self.output_name + '_output.mp4', mode='w')
+		container = av.open("output/" + output_name + '_output.mp4', mode='w')
 		stream = None
 
 		fps = 25

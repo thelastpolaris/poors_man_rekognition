@@ -1,12 +1,12 @@
 import multiprocessing
-import abc
+from abc import ABC, abstractmethod
 
-class Kernel():
+class Kernel(ABC):
     def __init__(self):
         pass
 
     # Pure virtual function
-    def run(self, args):
+    def run(self, *args):
         parent_conn, child_conn = multiprocessing.Pipe()
         process = multiprocessing.Process(target=self.predict, args = (parent_conn, ) + args)
 
@@ -19,6 +19,6 @@ class Kernel():
 
         return results
 
-    @abc.abstractmethod
-    def predict(self, args):
+    @abstractmethod
+    def predict(self, *args):
         pass

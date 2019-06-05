@@ -1,20 +1,17 @@
 import numpy as np
-import cv2, os
-from progress.bar import Bar
-from .face_detector import FaceDetectorElem
-from ..kernel import Kernel
-
+import os
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import load_model
-from PIL import ImageDraw, Image
+from PIL import Image
 
 from ...model.yolov3.model import eval
+from .face_detector_kernel import FaceDetectorKernel
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
-class YOLOv3FaceDetector(Kernel):
+class YOLOv3FaceDetector(FaceDetectorKernel):
 	def __init__(self, min_score=.5, iou = 0.45):
 		super().__init__()
 		self._model_path = parentDir + "/../model/yolov3/YOLO_Face.h5"
@@ -71,57 +68,28 @@ class YOLOv3FaceDetector(Kernel):
 		new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
 		return new_image
 
-	def predict(self, connection, frames_reader):
+	def load_model(self):
 		self._sess = K.get_session()
 		self._boxes, self._scores, self._classes = self._generate()
 
+	def inference(self, image):
+		image = Image.fromarray(image)
 
-		print("Detecting faces in video")
-		bar = None
-		i = 0
+		new_image_size = (image.width - (image.width % 32),
+						  image.height - (image.height % 32))
+		boxed_image = self.letterbox_image(image, new_image_size)
 
-		all_frames_pts = []
-		all_frames_face_boxes = []
+		image_data = np.array(boxed_image, dtype='float32')
 
-		frames_generator = frames_reader.get_frames(1)
+		image_data /= 255.
+		# add batch dimension
+		image_data = np.expand_dims(image_data, 0)
+		boxes, scores, classes = self._sess.run(
+			[self._boxes, self._scores, self._classes],
+			feed_dict={
+				self.yolo_model.input: image_data,
+				self.input_image_shape: [image.size[1], image.size[0]],
+				K.learning_phase(): 0
+			})
 
-		for frames_data, frames_pts in frames_generator:
-			image = Image.fromarray(frames_data)
-			frame_boxes = []
-
-			if bar is None:
-				bar = Bar('Processing', max=frames_reader.frames_num)
-
-			new_image_size = (image.width - (image.width % 32),
-								  image.height - (image.height % 32))
-			boxed_image = self.letterbox_image(image, new_image_size)
-
-			image_data = np.array(boxed_image, dtype='float32')
-
-			image_data /= 255.
-			# add batch dimension
-			image_data = np.expand_dims(image_data, 0)
-			boxes, scores, classes = self._sess.run(
-				[self._boxes, self._scores, self._classes],
-				feed_dict={
-					self.yolo_model.input: image_data,
-					self.input_image_shape: [image.size[1], image.size[0]],
-					K.learning_phase(): 0
-				})
-
-			for b in range(len(boxes)):
-				if scores[b] > self._min_score:
-					frame_boxes.append(boxes[b])
-
-			all_frames_face_boxes.append(frame_boxes)
-			all_frames_pts.append(frames_pts)
-
-			i += 1
-			bar.next()
-
-		if bar:
-			bar.finish()
-
-		connection.send((all_frames_face_boxes, all_frames_pts))
-
-		return
+		return scores, boxes
