@@ -12,6 +12,8 @@ from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
 from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
+from rekognition.pipeline.face_detectors.mtcnn import MTCNNFaceDetector
+
 from rekognition.pipeline.face_detectors.dsfd import DSFDFaceDetector
 
 from rekognition.pipeline.recognizers.face_recognizer import FaceRecognizerElem
@@ -35,21 +37,22 @@ invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([resizer])
-# datahandler.max_frames = 1000
 
-face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
 # face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
+face_detector = FaceDetectorElem(MTCNNFaceDetector())
+
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
                      face_detector,
-                     face_recognizer,
+                     # face_recognizer,
                      output_hand])
 
 print(pipeline)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100},
-              face_detector: {"min_score": 0.5},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 300},
+              face_detector: {"min_score": 0.7},
               output_hand: {"output_name": "test"}})

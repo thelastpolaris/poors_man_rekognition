@@ -39,7 +39,11 @@ class VideoOutputHandler(OutputHandler):
 			if len(frame_boxes):
 				for f in range(len(frame_boxes)):
 					ymin, xmin, ymax, xmax = frame_boxes[f]
-					name = data._frames_face_names[i][f][0]
+
+					if data._frames_face_names:
+						name = data._frames_face_names[i][f][0]
+					else:
+						name = ""
 
 					vis_util.draw_bounding_box_on_image_array(image,
 													 ymin,

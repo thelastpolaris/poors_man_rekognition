@@ -57,7 +57,7 @@ class VideoFrames:
 		return None, None
 
 class VideoHandlerElem(PipelineElement):
-	def __init__(self, preprocessors = None):
+	def __init__(self, preprocessors = []):
 		super().__init__()
 		self.input_path = None
 		self._max_frames = 0

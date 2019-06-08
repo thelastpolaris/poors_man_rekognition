@@ -11,6 +11,7 @@ from rekognition.pipeline.input_handlers.image_handler import ImageHandlerElem
 # Computer Vision
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
 from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
+from rekognition.pipeline.face_detectors.mtcnn import MTCNNFaceDetector
 from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
 
 # Output
@@ -44,8 +45,9 @@ else:
 datahandler.max_frames = 50
 
 # Face Detector
-face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
-# face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
+# face_detector = MobileNetsSSDFaceDetector()
+# face_detector = YOLOv3FaceDetector()
+face_detector = MTCNNFaceDetector()
 
 # Face Recognizer
 face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")
