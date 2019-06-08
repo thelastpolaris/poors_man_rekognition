@@ -10,6 +10,8 @@
 [![Work in Progress](https://img.shields.io/badge/Status-Work%20In%20Progress-Blue.svg)](https://shields.io/)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![GSoC](https://img.shields.io/badge/GSoC-2019-Red.svg)](https://summerofcode.withgoogle.com/dashboard/project/6506536917008384/overview/)
+[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+
 
   <p align="center">
     <a href="http://fedoskin.org/category/gsoc-2019/"><strong>Track the progress</strong></a>
