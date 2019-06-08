@@ -15,6 +15,7 @@
 /output
 *.h5
 *.pth
+/venv
 
 # Allow
 !/resources/static/*.png
