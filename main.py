@@ -45,9 +45,9 @@ else:
 datahandler.max_frames = 50
 
 # Face Detector
-# face_detector = MobileNetsSSDFaceDetector()
+face_detector = MobileNetsSSDFaceDetector()
 # face_detector = YOLOv3FaceDetector()
-face_detector = MTCNNFaceDetector()
+# face_detector = MTCNNFaceDetector()
 
 # Face Recognizer
 face_recognizer = FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl")

@@ -16,6 +16,7 @@
 *.h5
 *.pth
 /venv
+/test
 
 # Allow
 !/resources/static/*.png

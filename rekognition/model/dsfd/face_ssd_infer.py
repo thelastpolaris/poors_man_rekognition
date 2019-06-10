@@ -145,11 +145,11 @@ class SSD(nn.Module):
         keep_idxs = scores != 0  # find keeping indexes
         detections = detections[0, 1, keep_idxs, :]  # select detections over threshold
 
-        boxes = detections[:, [1, 2, 3, 4]]  # reorder
+        boxes = detections[:, [2, 1, 4, 3]]  # reorder
         scores = detections[:, 0]
 
-        boxes[:, [0, 2]] -= shift_w_scaled  # 0 or pad percent from left corner
-        boxes[:, [1, 3]] -= shift_h_scaled  # 0 or pad percent from top
-        boxes[:, :4] *= scale
+        # boxes[:, [1, 3]] -= shift_w_scaled  # 0 or pad percent from left corner
+        # boxes[:, [0, 2]] -= shift_h_scaled  # 0 or pad percent from top
+        # boxes[:, :] *= scale
 
         return scores, boxes

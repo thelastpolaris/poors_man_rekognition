@@ -21,3 +21,4 @@ scikit_learn==0.21.2
 tensorflow==1.13.1
 tornado_sqlalchemy==0.6.1
 mtcnn==0.0.9
+xmltodict==0.12.0

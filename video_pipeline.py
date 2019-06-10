@@ -8,6 +8,8 @@ from rekognition.pipeline.pipeline import Pipeline
 from rekognition.pipeline.input_handlers.preprocessors import ResizeImage, InvertColors, Lambda
 from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 
+import tensorflow
+
 # Computer Vision
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
@@ -28,20 +30,21 @@ fileDir = os.path.dirname(os.path.abspath(__file__)) + "/"
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", required=True, help="Either video or image")
+
 args = vars(ap.parse_args())
 
 input_path = args["input"]
 
-resizer = ResizeImage(640, 480)
+resizer = ResizeImage(320, 240)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([resizer])
 
-# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
 # face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
-face_detector = FaceDetectorElem(MTCNNFaceDetector())
+# face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
 output_hand = VideoOutputHandler()
@@ -49,10 +52,14 @@ output_hand = VideoOutputHandler()
 pipeline = Pipeline([datahandler,
                      face_detector,
                      # face_recognizer,
-                     output_hand])
+                     output_hand
+                     ])
 
 print(pipeline)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 300},
-              face_detector: {"min_score": 0.7},
-              output_hand: {"output_name": "test"}})
+# Benchmarks stuff
+benchmark_boxes = os.path.splitext(input_path)[0]+'.xml'
+
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500},
+              face_detector: {"min_score": 0.7, "benchmark_boxes": benchmark_boxes},
+              output_hand: {"output_name": "test"}}, benchmark=True)
