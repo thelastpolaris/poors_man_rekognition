@@ -18,21 +18,36 @@ class FaceDetectorElem(PipelineElement):
 		if benchmark_boxes != None:
 			bench_boxes = boxes_from_cvat_xml(benchmark_boxes)
 
-			Num = 0
-			IOU_threshold = 0.5
-
-			TP = 0
-			FP = 0
-			FN = 0
-
 			if bench_boxes:
+				Num = 0
+				IoU_threshold = 0.5
+
+				TP = 0
+				FP = 0
+				FN = 0
+
 				for (i, frame_boxes) in enumerate(data._frames_face_boxes):
+					for bench_box in bench_boxes[i]:
+						bench_found = False
+						for box in frame_boxes:
+							if IoU(normalize_box(box, 720, 1280), bench_box) > IoU_threshold:
+								bench_found = True
+						if not bench_found:
+							FN += 1
+
 					for box in frame_boxes:
-						# print(bench_boxes[i])
+						is_true = False
 						for bench in bench_boxes[i]:
-							pass
-							# print()
-							# print(normalize_box(box, 1280, 720), bench, IoU(box, bench))
-					# for (c, bench) in enumerate(bench_boxes[i]):
-					# 	print(frame_boxes, bench_box)
-						# print(i, IoU(frame_boxes, normalize_box(bench_boxes[i][c], 320, 240)))
+							if IoU(normalize_box(box, 720, 1280), bench) > IoU_threshold:
+								TP += 1
+								is_true = True
+						if not is_true:
+							FP += 1
+
+				accuracy = TP/(TP + FP)
+				recall = TP/(TP + FN)
+
+				# if accuracy
+
+				data.benchmark.add_value(self, "Accuracy", accuracy)
+				data.benchmark.add_value(self, "Recall", recall)
