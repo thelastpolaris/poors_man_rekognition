@@ -3,6 +3,7 @@ import os
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import load_model
 from PIL import Image
+from ...utils.utils import normalize_box
 
 from ...model.yolov3.model import eval
 from .face_detector_kernel import FaceDetectorKernel
@@ -74,6 +75,8 @@ class YOLOv3FaceDetector(FaceDetectorKernel):
 
 	def inference(self, image):
 		image = Image.fromarray(image)
+		img_height = image.size[1]
+		img_width = image.size[0]
 
 		new_image_size = (image.width - (image.width % 32),
 						  image.height - (image.height % 32))
@@ -88,8 +91,10 @@ class YOLOv3FaceDetector(FaceDetectorKernel):
 			[self._boxes, self._scores, self._classes],
 			feed_dict={
 				self.yolo_model.input: image_data,
-				self.input_image_shape: [image.size[1], image.size[0]],
+				self.input_image_shape: [img_height, img_width],
 				K.learning_phase(): 0
 			})
+
+		boxes = [normalize_box(box, img_height, img_width) for box in boxes]
 
 		return scores, boxes

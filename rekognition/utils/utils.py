@@ -53,9 +53,30 @@ def boxes_from_cvat_xml(path_to_xml):
 
 		# print(root["track"][0]["box"][0]["@frame"])
 
-def normalize_box(box, height, width):
+def restore_normalization(box, height, width):
+	"""
+	Scales a normalized box one according to given height and width
+	:param box: numpy array of size 4 with [y_min, x_min, y_max, x_max] format
+	:param height: height of a picture to which box should be scaled
+	:param width: width of a picture to which box should be scaled
+	:return: a box scaled according to given height and width
+	"""
 	norm_box = [int(box[0] * height), int(box[1] * width),
 				int(box[2] * height), int(box[3] * width)]
+
+	return np.array(norm_box)
+
+def normalize_box(box, height, width):
+	"""
+	Normalizes a box according to given height and width
+	:param box: numpy array of size 4 with [y_min, x_min, y_max, x_max] format
+	:param height: height of a picture from which the box comes
+	:param width: width of a picture from which the box comes
+	:return: a box normalized according to given height and width
+	"""
+
+	norm_box = [box[0] / height, box[1] / width,
+				box[2] / height, box[3] / width]
 
 	return np.array(norm_box)
 

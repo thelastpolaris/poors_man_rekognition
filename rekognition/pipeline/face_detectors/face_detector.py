@@ -1,11 +1,11 @@
 from ..pipeline_element import PipelineElement
-from ...utils.utils import boxes_from_cvat_xml, IoU, normalize_box
+from ...utils.utils import boxes_from_cvat_xml, IoU, restore_normalization
 
 class FaceDetectorElem(PipelineElement):
 	def __init__(self, kernel):
 		super().__init__(kernel)
 
-	def run(self, data, benchmark=True, min_score=0.7, benchmark_boxes=None):
+	def run(self, data, benchmark=False, min_score=0.7, benchmark_boxes=None):
 		data._frames_face_boxes, data._frames_pts, benchmark_time = self.kernel.run(data.frames_reader, min_score, benchmark)
 
 		if benchmark:
@@ -27,27 +27,27 @@ class FaceDetectorElem(PipelineElement):
 				FN = 0
 
 				for (i, frame_boxes) in enumerate(data._frames_face_boxes):
-					for bench_box in bench_boxes[i]:
-						bench_found = False
-						for box in frame_boxes:
-							if IoU(normalize_box(box, 720, 1280), bench_box) > IoU_threshold:
-								bench_found = True
-						if not bench_found:
-							FN += 1
+					if i < len(bench_boxes) - 1:
+						for bench_box in bench_boxes[i]:
+							bench_found = False
+							for box in frame_boxes:
+								if IoU(restore_normalization(box, 720, 1280), bench_box) > IoU_threshold:
+									bench_found = True
+							if not bench_found:
+								FN += 1
 
 					for box in frame_boxes:
 						is_true = False
-						for bench in bench_boxes[i]:
-							if IoU(normalize_box(box, 720, 1280), bench) > IoU_threshold:
-								TP += 1
-								is_true = True
-						if not is_true:
-							FP += 1
+						if i < len(bench_boxes) - 1:
+							for bench in bench_boxes[i]:
+								if IoU(restore_normalization(box, 720, 1280), bench) > IoU_threshold:
+									TP += 1
+									is_true = True
+							if not is_true:
+								FP += 1
 
-				accuracy = TP/(TP + FP)
-				recall = TP/(TP + FN)
-
-				# if accuracy
+				accuracy = 0 if (TP+FP) == 0 else TP/(TP + FP)
+				recall = 0 if (TP + FN) == 0 else TP/(TP + FN)
 
 				data.benchmark.add_value(self, "Accuracy", accuracy)
 				data.benchmark.add_value(self, "Recall", recall)

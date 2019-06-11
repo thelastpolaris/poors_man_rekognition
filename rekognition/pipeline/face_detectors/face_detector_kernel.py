@@ -40,11 +40,7 @@ class FaceDetectorKernel(Kernel):
 			if bar is None:
 				bar = Bar('Processing', max=frames_reader.frames_num)
 
-			if i > 0:
-				scores, boxes = self.inference(image)
-			else:
-				scores = []
-				boxes = []
+			scores, boxes = self.inference(image)
 
 			frame_boxes = []
 

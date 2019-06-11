@@ -50,7 +50,7 @@ class Pipeline:
 		self.__elements.append(element)
 		element.parent_pipeline = self
 
-	def run(self, params_dict, benchmark=False):
+	def run(self, params_dict):
 		assert (len(self.__elements)), "Pipeline needs to have at least one PipelineElement"
 
 		start = time.time()
@@ -65,8 +65,7 @@ class Pipeline:
 
 		end = time.time()
 
-		if benchmark:
-			self.__data_holder.benchmark.print_benchmark()
+		self.__data_holder.benchmark.print_benchmark()
 		print("Done! Total time elapsed {:.2f} seconds".format(end - start))
 
 		return True

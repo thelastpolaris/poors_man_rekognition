@@ -29,7 +29,6 @@ class VideoOutputHandler(OutputHandler):
 
 			if stream is None:
 				[h, w] = image.shape[:2]
-				print(h, w)
 				stream = container.add_stream('h264', rate=fps)
 				stream.height = h
 				stream.width = w
