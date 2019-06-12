@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/thelastpolaris/poors_man_rekognition">
     <img src="resources/static/logo.png" alt="Logo">
   </a>
   <h4 align="center">GSoC 2019 | CCExtractor Development</h4>
