@@ -16,7 +16,7 @@ class FaceDetectorElem(PipelineElement):
 			data.benchmark.add_value(self, k, v)
 
 		if benchmark_boxes != None:
-			bench_boxes = boxes_from_cvat_xml(benchmark_boxes)
+			bench_boxes, bench_w, bench_h = boxes_from_cvat_xml(benchmark_boxes)
 
 			if bench_boxes:
 				Num = 0
@@ -31,7 +31,7 @@ class FaceDetectorElem(PipelineElement):
 						for bench_box in bench_boxes[i]:
 							bench_found = False
 							for box in frame_boxes:
-								if IoU(restore_normalization(box, 720, 1280), bench_box) > IoU_threshold:
+								if IoU(restore_normalization(box, bench_h, bench_w), bench_box) > IoU_threshold:
 									bench_found = True
 							if not bench_found:
 								FN += 1
@@ -40,7 +40,7 @@ class FaceDetectorElem(PipelineElement):
 						is_true = False
 						if i < len(bench_boxes) - 1:
 							for bench in bench_boxes[i]:
-								if IoU(restore_normalization(box, 720, 1280), bench) > IoU_threshold:
+								if IoU(restore_normalization(box, bench_h, bench_w), bench) > IoU_threshold:
 									TP += 1
 									is_true = True
 							if not is_true:

@@ -35,9 +35,9 @@ def boxes_from_cvat_xml(path_to_xml):
 		root = doc["annotations"]
 
 		task = root["meta"]["task"]
-		start_frame = int(task["start_frame"])
-		stop_frame = int(task["stop_frame"])
-		frames_num = stop_frame - start_frame
+		frames_num = int(task["size"])
+		resolution = task["original_size"]
+		width, height = int(resolution["width"]), int(resolution["height"])
 
 		frames = [[] for i in range(frames_num)]
 
@@ -49,7 +49,7 @@ def boxes_from_cvat_xml(path_to_xml):
 									  int(float(box["@ybr"])), int(float(box["@xbr"]))])
 				frames[frame].append(box_array)
 
-		return frames
+		return frames, width, height
 
 		# print(root["track"][0]["box"][0]["@frame"])
 

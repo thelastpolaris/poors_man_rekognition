@@ -41,10 +41,10 @@ lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([])
 
-face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
 # face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
-# face_detector = FaceDetectorElem(MTCNNFaceDetector())
+face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
 output_hand = VideoOutputHandler()
@@ -58,9 +58,9 @@ pipeline = Pipeline([datahandler,
 print(pipeline)
 
 # Benchmarks stuff
-# benchmark_boxes = os.path.splitext(input_path)[0]+'.xml'
-benchmark_boxes = ""
+benchmark_boxes = os.path.splitext(input_path)[0]+'.xml'
+# benchmark_boxes = ""
 
 pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0},
-              face_detector: {"min_score": 0.6, "benchmark": False, "benchmark_boxes": benchmark_boxes},
+              face_detector: {"min_score": 0.6, "benchmark": True, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": "test"}})
