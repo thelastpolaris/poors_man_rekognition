@@ -4,6 +4,7 @@ from ...utils import utils
 from progress.bar import Bar
 import av, os
 from PIL import Image
+import cv2
 
 class VideoOutputHandler(OutputHandler):
 	def run(self, data, output_name):
@@ -33,24 +34,33 @@ class VideoOutputHandler(OutputHandler):
 				stream.height = h
 				stream.width = w
 
-			frame_boxes = data._frames_face_boxes[i]
+			if data._frames_face_boxes:
+				frame_boxes = data._frames_face_boxes[i]
 
-			if len(frame_boxes):
-				for f in range(len(frame_boxes)):
-					ymin, xmin, ymax, xmax = frame_boxes[f]
+				if len(frame_boxes):
+					for f in range(len(frame_boxes)):
+						ymin, xmin, ymax, xmax = frame_boxes[f]
 
-					if data._frames_face_names:
-						name = data._frames_face_names[i][f][0]
-					else:
-						name = ""
+						if data._frames_face_names:
+							name = data._frames_face_names[i][f][0]
+						else:
+							name = ""
 
-					vis_util.draw_bounding_box_on_image_array(image,
-													 ymin,
-													 xmin,
-													 ymax,
-													 xmax,
-													 display_str_list=[name],
-													 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
+						vis_util.draw_bounding_box_on_image_array(image,
+														 ymin,
+														 xmin,
+														 ymax,
+														 xmax,
+														 display_str_list=[name],
+														 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
+
+			if data._frames_correlation:
+				color = 0
+				cor = data._frames_correlation[i]
+				if cor < 0.97:
+					color = 255
+
+				cv2.putText(image, str(cor), (int(w*0.05), int(h*0.95)), cv2.FONT_HERSHEY_DUPLEX, 1, color)
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

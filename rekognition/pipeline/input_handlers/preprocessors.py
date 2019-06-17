@@ -2,7 +2,7 @@ import abc
 import cv2
 import numpy as np
 
-class Preprocessor():
+class Preprocessor:
     def __init__(self):
         pass
 

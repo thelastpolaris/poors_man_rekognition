@@ -4,6 +4,7 @@ from rekognition.pipeline.pipeline_element import PipelineElement
 
 class Data:
 	def __init__(self):
+		self._frames_correlation = None
 		self._frames_reader = None
 		self._frames_pts = None
 		self._frames_face_boxes = None
@@ -36,6 +37,10 @@ class Data:
 		def print_benchmark(self):
 			for k, v in self.__elem_values.items():
 				print(k, v)
+
+		def save_benchmark(self):
+			pass
+			# "output/" + output_name + '_output.mp4'
 
 class Pipeline:
 	def __init__(self, elements):

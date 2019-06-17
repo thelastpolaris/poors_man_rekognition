@@ -51,7 +51,9 @@ class VideoFrames:
 
 				if self._counter - num_of_frames >= old_counter:
 					yield frames_data, frames_pts
+
 					frames_data, frames_pts = [], []
+					old_counter = self._counter
 
 		self._container.close()
 		return None, None

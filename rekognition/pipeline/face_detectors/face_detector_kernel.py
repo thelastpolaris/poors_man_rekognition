@@ -44,9 +44,13 @@ class FaceDetectorKernel(Kernel):
 
 			frame_boxes = []
 
-			for b in range(len(boxes)):
-				if scores[b] > min_score:
-					frame_boxes.append(boxes[b])
+			if min_score > 0:
+				for b in range(len(boxes)):
+					if scores[b] > min_score:
+						frame_boxes.append(boxes[b])
+			else:
+				frame_boxes = boxes
+				benchmark_data["scores"] = scores
 
 			bar.next()
 			i += 1

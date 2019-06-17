@@ -1,25 +1,31 @@
 from ..pipeline_element import PipelineElement
 from ...utils.utils import boxes_from_cvat_xml, IoU, restore_normalization
+from sklearn.metrics import precision_recall_curve
 
 class FaceDetectorElem(PipelineElement):
 	def __init__(self, kernel):
 		super().__init__(kernel)
 
 	def run(self, data, benchmark=False, min_score=0.7, benchmark_boxes=None):
-		data._frames_face_boxes, data._frames_pts, benchmark_time = self.kernel.run(data.frames_reader, min_score, benchmark)
+		data._frames_face_boxes, data._frames_pts, benchmark_data = self.kernel.run(data.frames_reader, min_score, benchmark)
 
 		if benchmark:
-			self.benchmark(data, benchmark_time, benchmark_boxes)
+			self.benchmark(data, benchmark_data, benchmark_boxes)
 
-	def benchmark(self, data, benchmark_time, benchmark_boxes):
-		for k, v in benchmark_time.items():
-			data.benchmark.add_value(self, k, v)
+	def benchmark(self, data, benchmark_data, benchmark_boxes):
+		for k, v in benchmark_data.items():
+			if k != "scores":
+				data.benchmark.add_value(self, k, v)
+
+		if "scores" in benchmark_data.keys():
+			scores = benchmark_data["scores"]
 
 		if benchmark_boxes != None:
 			bench_boxes, bench_w, bench_h = boxes_from_cvat_xml(benchmark_boxes)
+			prediction_labels = []
 
 			if bench_boxes:
-				Num = 0
+				Pred_num = 0
 				IoU_threshold = 0.5
 
 				TP = 0
@@ -27,27 +33,34 @@ class FaceDetectorElem(PipelineElement):
 				FN = 0
 
 				for (i, frame_boxes) in enumerate(data._frames_face_boxes):
+					frame_predictions = []
 					if i < len(bench_boxes) - 1:
 						for bench_box in bench_boxes[i]:
 							bench_found = False
 							for box in frame_boxes:
 								if IoU(restore_normalization(box, bench_h, bench_w), bench_box) > IoU_threshold:
 									bench_found = True
+									frame_predictions.append(1)
 							if not bench_found:
+								frame_predictions.append(0)
 								FN += 1
 
 					for box in frame_boxes:
+						Pred_num += 1
 						is_true = False
 						if i < len(bench_boxes) - 1:
 							for bench in bench_boxes[i]:
 								if IoU(restore_normalization(box, bench_h, bench_w), bench) > IoU_threshold:
 									TP += 1
 									is_true = True
+									break
 							if not is_true:
 								FP += 1
 
-				accuracy = 0 if (TP+FP) == 0 else TP/(TP + FP)
+				# accuracy = TP/Pred_num
+				precision = 0 if (TP+FP) == 0 else TP/(TP + FP)
 				recall = 0 if (TP + FN) == 0 else TP/(TP + FN)
 
-				data.benchmark.add_value(self, "Accuracy", accuracy)
+				# data.benchmark.add_value(self, "Accuracy", accuracy)
+				data.benchmark.add_value(self, "Precision", precision)
 				data.benchmark.add_value(self, "Recall", recall)
