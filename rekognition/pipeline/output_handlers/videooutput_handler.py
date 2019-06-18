@@ -19,9 +19,9 @@ class VideoOutputHandler(OutputHandler):
 		frames_reader = data.frames_reader
 
 		print("Saving processed video")
-		bar = Bar('Processing', max = frames_reader.frames_num)
+		bar = Bar('Processing', max = frames_reader.frames_num(group_frames=False))
 
-		frames_generator = frames_reader.get_frames(1)
+		frames_generator = frames_reader.get_frames(group_frames=False)
 
 		i = 0
 

@@ -11,28 +11,53 @@ class VideoFrames:
 		self._max_frames = max_frames
 		self._preprocessors = preprocessors
 		self.input_path = input_path
+		self._frames_group = None
 
-	@property
-	def frames_num(self):
+	def frames_num(self, group_frames = True):
+		if group_frames and self.frames_group:
+			return len(self.frames_group)
+
 		return self._max_frames if self._max_frames else self._stream.frames
 
-	def get_frames(self, num_of_frames = 1):
+	def get_frames(self, num_of_frames = 1, group_frames = True):
 		self._container = av.open(self.input_path)
 
 		decoder = self._container.decode(self._stream)
 		self._counter = 0
 
-		return self.frames_generator(decoder, num_of_frames)
+		return self.frames_generator(decoder, num_of_frames, group_frames)
 
-	def frames_generator(self, decoder, num_of_frames):
+	@property
+	def frames_group(self):
+		return self._frames_group
+
+	@frames_group.setter
+	def frames_group(self, frames_group):
+		self._frames_group = frames_group
+
+	def frames_generator(self, decoder, num_of_frames, group_frames = True):
 		frames_data = []
 		frames_pts = []
 		old_counter = self._counter
+
+		group_i = 0
+		skip_frames = 0
 
 		for frame in decoder:
 			if self._max_frames > 0:
 				if self._counter >= self._max_frames:
 					return None, None
+
+			if group_frames:
+				if skip_frames:
+					skip_frames -= 1
+					self._counter += 1
+					continue
+
+				if self.frames_group and not skip_frames:
+					if group_i < len(self.frames_group):
+						skip_frames = self.frames_group[group_i]
+						group_i += 1
 
 			image = frame.to_rgb().to_ndarray()
 

@@ -7,7 +7,21 @@ class FaceDetectorElem(PipelineElement):
 		super().__init__(kernel)
 
 	def run(self, data, benchmark=False, min_score=0.7, benchmark_boxes=None):
-		data._frames_face_boxes, data._frames_pts, benchmark_data = self.kernel.run(data.frames_reader, min_score, benchmark)
+		frames_face_boxes, data._frames_pts, benchmark_data = self.kernel.run(data.frames_reader,
+																					min_score,
+																					benchmark)
+		new_frames_face_boxes = []
+		frames_group = data.frames_reader.frames_group
+
+		if frames_group:
+			for i, face_boxes in enumerate(frames_face_boxes):
+				group = frames_group[i]
+				for a in range(group + 1):
+					new_frames_face_boxes.append(frames_face_boxes[i])
+		else:
+			new_frames_face_boxes = frames_face_boxes
+
+		data._frames_face_boxes = new_frames_face_boxes
 
 		if benchmark:
 			self.benchmark(data, benchmark_data, benchmark_boxes)

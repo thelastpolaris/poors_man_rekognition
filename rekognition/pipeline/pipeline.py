@@ -5,6 +5,8 @@ from rekognition.pipeline.pipeline_element import PipelineElement
 class Data:
 	def __init__(self):
 		self._frames_correlation = None
+		self._frames_group = None
+
 		self._frames_reader = None
 		self._frames_pts = None
 		self._frames_face_boxes = None

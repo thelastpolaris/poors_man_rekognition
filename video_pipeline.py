@@ -45,7 +45,7 @@ lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([resizer])
 
-simframes = SimilarFramesFinder(TTestSimilarity())
+simframes = SimilarFramesFinder(CorrelationSimilarity())
 
 # face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
 face_detector = FaceDetectorElem(YOLOv3FaceDetector())
@@ -57,7 +57,7 @@ output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
                      simframes,
-                     # face_detector,
+                     face_detector,
                      # face_recognizer,
                      output_hand
                      ])
@@ -68,7 +68,7 @@ print(pipeline)
 benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + filename_wo_ext + '.xml'
 # benchmark_boxes = ""
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
-              simframes: {"benchmark": True},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0},
+              simframes: {"benchmark": True,  "sim_threshold": 0.97},
               face_detector: {"min_score": 0.6, "benchmark": True, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": filename_wo_ext + "_" + face_detector.__str__()}})
