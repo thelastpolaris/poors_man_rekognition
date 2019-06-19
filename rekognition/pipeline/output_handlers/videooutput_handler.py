@@ -21,11 +21,11 @@ class VideoOutputHandler(OutputHandler):
 		print("Saving processed video")
 		bar = Bar('Processing', max = frames_reader.frames_num(group_frames=False))
 
-		frames_generator = frames_reader.get_frames(group_frames=False)
+		frames_generator = frames_reader.get_frames(group_frames=False, return_key_frame = True)
 
 		i = 0
 
-		for frames_data, frames_pts in frames_generator:
+		for frames_data, frames_pts, frames_key in frames_generator:
 			image = frames_data
 
 			if stream is None:
@@ -53,6 +53,11 @@ class VideoOutputHandler(OutputHandler):
 														 xmax,
 														 display_str_list=[name],
 														 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
+
+			# Key Frame
+			color = 0 if frames_key else 125
+			print(frames_key)
+			cv2.putText(image, "KEY", (int(w * 0.05), int(h * 0.05)), cv2.FONT_HERSHEY_DUPLEX, 1, color)
 
 			if data._frames_correlation:
 				color = 0

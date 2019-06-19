@@ -19,13 +19,13 @@ class VideoFrames:
 
 		return self._max_frames if self._max_frames else self._stream.frames
 
-	def get_frames(self, num_of_frames = 1, group_frames = True):
+	def get_frames(self, num_of_frames = 1, group_frames = True, return_key_frame = False):
 		self._container = av.open(self.input_path)
 
 		decoder = self._container.decode(self._stream)
 		self._counter = 0
 
-		return self.frames_generator(decoder, num_of_frames, group_frames)
+		return self.frames_generator(decoder, num_of_frames, group_frames, return_key_frame)
 
 	@property
 	def frames_group(self):
@@ -35,7 +35,7 @@ class VideoFrames:
 	def frames_group(self, frames_group):
 		self._frames_group = frames_group
 
-	def frames_generator(self, decoder, num_of_frames, group_frames = True):
+	def frames_generator(self, decoder, num_of_frames, group_frames = True, return_key_frame = False):
 		frames_data = []
 		frames_pts = []
 		old_counter = self._counter
@@ -69,7 +69,11 @@ class VideoFrames:
 			self._counter += 1
 
 			if num_of_frames == 1:
-				yield image, frame.pts
+				if return_key_frame:
+					yield image, frame.pts, frame.key_frame
+				else:
+					yield image, frame.pts
+
 			else:
 				frames_data.append(image)
 				frames_pts.append(frame.pts)

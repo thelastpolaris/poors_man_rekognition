@@ -11,7 +11,9 @@ from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 import tensorflow
 
 # Computer Vision
-from rekognition.pipeline.various.similarframesfinder import *
+from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFramesFinder
+from rekognition.pipeline.similar_frames.comp_hist_kernel import CompHist
+
 
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
@@ -45,10 +47,10 @@ lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([resizer])
 
-simframes = SimilarFramesFinder(CorrelationSimilarity())
+simframes = SimilarFramesFinder(CompHist())
 
-# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
-face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
@@ -68,7 +70,7 @@ print(pipeline)
 benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + filename_wo_ext + '.xml'
 # benchmark_boxes = ""
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
               simframes: {"benchmark": True,  "sim_threshold": 0.97},
               face_detector: {"min_score": 0.6, "benchmark": True, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": filename_wo_ext + "_" + face_detector.__str__()}})
