@@ -2,7 +2,6 @@ from .data_handler import DataHandlerElem
 import av
 from ..pipeline_element import PipelineElement
 
-
 class VideoFrames:
 	def __init__(self, container, stream, preprocessors = [], max_frames = 0, input_path = ""):
 		self._container = container
@@ -19,13 +18,17 @@ class VideoFrames:
 
 		return self._max_frames if self._max_frames else self._stream.frames
 
-	def get_frames(self, num_of_frames = 1, group_frames = True, return_key_frame = False):
+	def get_frames(self, num_of_frames = 1, group_frames = True, return_key_frame = False,
+				   first_frame=0, last_frame=0):
 		self._container = av.open(self.input_path)
 
 		decoder = self._container.decode(self._stream)
 		self._counter = 0
 
-		return self.frames_generator(decoder, num_of_frames, group_frames, return_key_frame)
+		generator = self.frames_generator(decoder, num_of_frames, group_frames, return_key_frame,
+										  first_frame, last_frame)
+
+		return generator
 
 	@property
 	def frames_group(self):
@@ -35,7 +38,13 @@ class VideoFrames:
 	def frames_group(self, frames_group):
 		self._frames_group = frames_group
 
-	def frames_generator(self, decoder, num_of_frames, group_frames = True, return_key_frame = False):
+	def frames_generator(self, decoder, num_of_frames, group_frames = True, return_key_frame = False,
+						 first_frame = 0, last_frame = 0):
+
+		if first_frame and last_frame:
+			if first_frame > last_frame or first_frame == last_frame:
+				raise ValueError("Wrong interval provided to frames_generator")
+
 		frames_data = []
 		frames_pts = []
 		old_counter = self._counter
@@ -43,15 +52,22 @@ class VideoFrames:
 		group_i = 0
 		skip_frames = 0
 
-		for frame in decoder:
+		for i, frame in enumerate(decoder):
 			if self._max_frames > 0:
-				if self._counter >= self._max_frames:
+				if i >= self._max_frames:
 					return None, None
+
+			if first_frame:
+				if i < first_frame:
+					continue
+
+			if last_frame:
+				if i >= last_frame:
+					break
 
 			if group_frames:
 				if skip_frames:
 					skip_frames -= 1
-					self._counter += 1
 					continue
 
 				if self.frames_group and not skip_frames:
@@ -61,12 +77,10 @@ class VideoFrames:
 
 			image = frame.to_rgb().to_ndarray()
 
-			# Preprocess the data
+			#Preprocess data
 			if self._preprocessors:
 				for p in self._preprocessors:
 					image = p.process(image)
-
-			self._counter += 1
 
 			if num_of_frames == 1:
 				if return_key_frame:
@@ -78,11 +92,11 @@ class VideoFrames:
 				frames_data.append(image)
 				frames_pts.append(frame.pts)
 
-				if self._counter - num_of_frames >= old_counter:
+				if i - num_of_frames >= old_counter:
 					yield frames_data, frames_pts
 
 					frames_data, frames_pts = [], []
-					old_counter = self._counter
+					old_counter = i
 
 		self._container.close()
 		return None, None

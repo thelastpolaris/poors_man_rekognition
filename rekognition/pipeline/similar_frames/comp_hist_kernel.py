@@ -1,15 +1,11 @@
 from .similar_frames_kernel import SimilarFramesKernel
-import time
-from progress.bar import Bar
 import cv2
-import numpy as np
-from skimage.measure import compare_ssim as ssim
 
 from scipy.spatial import distance
 
 class CompHist(SimilarFramesKernel):
 	def __init__(self, method = "chebyshev"):
-		super().__init__
+		super().__init__()
 		self._methods = ["chebyshev", "opencv_cor"]
 		if method not in self._methods:
 			self._method = "chebyshev"

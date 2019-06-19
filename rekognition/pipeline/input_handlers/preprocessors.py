@@ -31,6 +31,7 @@ class InvertColors(Preprocessor):
 
 class Lambda(Preprocessor):
     def __init__(self, lambda_func):
+        super().__init__()
         self._lambda_func = lambda_func
 
     def process(self, data):

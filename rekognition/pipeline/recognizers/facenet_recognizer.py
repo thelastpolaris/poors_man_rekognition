@@ -26,7 +26,7 @@ parentDir = os.path.dirname(fileDir)
 
 class FacenetRecognizer(Kernel):
     def __init__(self, facenet_model, facenet_classifier=parentDir):
-        super().__init__
+        super().__init__()
         self._facenet_model = facenet_model
         self._facenet_classifier = facenet_classifier
 

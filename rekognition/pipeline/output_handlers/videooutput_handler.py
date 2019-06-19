@@ -56,7 +56,6 @@ class VideoOutputHandler(OutputHandler):
 
 			# Key Frame
 			color = 0 if frames_key else 125
-			print(frames_key)
 			cv2.putText(image, "KEY", (int(w * 0.05), int(h * 0.05)), cv2.FONT_HERSHEY_DUPLEX, 1, color)
 
 			if data._frames_correlation:
