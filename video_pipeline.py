@@ -13,6 +13,7 @@ import tensorflow
 # Computer Vision
 from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFramesFinder
 from rekognition.pipeline.similar_frames.comp_hist_kernel import CompHist
+from rekognition.pipeline.similar_frames.ssim_kernel import SSIM
 
 
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
@@ -47,8 +48,11 @@ lambd = Lambda(lambda image: image)
 
 datahandler = VideoHandlerElem([resizer])
 
-simframes = SimilarFramesFinder(CompHist())
+# Group similar frames
+# simframes = SimilarFramesFinder(CompHist())
+simframes = SimilarFramesFinder(SSIM())
 
+# Face Detectors
 face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
 # face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
