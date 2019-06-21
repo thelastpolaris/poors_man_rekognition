@@ -24,9 +24,13 @@ class VideoOutputHandler(OutputHandler):
 		frames_generator = frames_reader.get_frames(group_frames=False, return_key_frame = True)
 
 		i = 0
+		group_i = 0
+		group = 0
+		frames_group = data.frames_reader.frames_group
 
 		for frames_data, frames_pts, frames_key in frames_generator:
 			image = frames_data
+			counter = i
 
 			if stream is None:
 				[h, w] = image.shape[:2]
@@ -34,15 +38,24 @@ class VideoOutputHandler(OutputHandler):
 				stream.height = h
 				stream.width = w
 
+				if frames_group:
+					if not group:
+						group = frames_group[group_i]
+						group_i += 1
+					else:
+						group -= 1
+
+					counter = group_i + group
+
 			if data._frames_face_boxes:
-				frame_boxes = data._frames_face_boxes[i]
+				frame_boxes = data._frames_face_boxes[counter]
 
 				if len(frame_boxes):
 					for f in range(len(frame_boxes)):
 						ymin, xmin, ymax, xmax = frame_boxes[f]
 
 						if data._frames_face_names:
-							name = data._frames_face_names[i][f][0]
+							name = data._frames_face_names[counter][f][0]
 						else:
 							name = ""
 

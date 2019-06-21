@@ -124,12 +124,12 @@ class FacenetRecognizer(Kernel):
         n_ngbr = 10
         nbrs = NearestNeighbors(n_neighbors=n_ngbr, algorithm='ball_tree').fit(model_emb)
 
-        bar = Bar('Processing', max = len(frames_face_boxes))
+        bar = Bar('Processing', max = frames_reader.frames_num())
 
         faces_names = []
         i = 0
 
-        frames_generator = frames_reader.get_frames(1)
+        frames_generator = frames_reader.get_frames()
 
         for frames_data, frames_pts in frames_generator:
             boxes = frames_face_boxes[i]
