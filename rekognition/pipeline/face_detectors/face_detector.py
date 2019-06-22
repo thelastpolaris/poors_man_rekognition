@@ -25,8 +25,6 @@ class FaceDetectorElem(PipelineElement):
 			bench_boxes, bench_w, bench_h = boxes_from_cvat_xml(benchmark_boxes)
 
 			if bench_boxes:
-				Pred_num = 0
-
 				TP = 0
 				FP = 0
 				FN = 0
@@ -42,7 +40,7 @@ class FaceDetectorElem(PipelineElement):
 					if frames_group:
 						group = frames_group[i]
 
-					for a in range(group + 1):
+					for a in range(group):
 						bench_count += 1
 						if bench_count < len(bench_boxes) - 1:
 							_TP, _FP, _FN = calculate_tp_fp_fn(frame_boxes, bench_boxes[bench_count], bench_w, bench_h)
@@ -50,7 +48,6 @@ class FaceDetectorElem(PipelineElement):
 							FP += _FP
 							FN += _FN
 
-				# accuracy = TP/Pred_num
 				precision = 0 if (TP+FP) == 0 else TP/(TP + FP)
 				recall = 0 if (TP + FN) == 0 else TP/(TP + FN)
 

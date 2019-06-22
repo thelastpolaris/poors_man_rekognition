@@ -21,14 +21,16 @@ class VideoOutputHandler(OutputHandler):
 		print("Saving processed video")
 		bar = Bar('Processing', max = frames_reader.frames_num(group_frames=False))
 
-		frames_generator = frames_reader.get_frames(group_frames=False, return_key_frame = True)
+		frames_generator = frames_reader.get_frames(group_frames=False)
 
-		i = 0
-		group_i = 0
-		group = 0
 		frames_group = data.frames_reader.frames_group
 
-		for frames_data, frames_pts, frames_key in frames_generator:
+		enum_frames = enumerate(frames_generator)
+		if frames_group:
+			group_i = 0
+			group = frames_group[group_i] + 1
+
+		for i, (frames_data, frames_pts) in enum_frames:
 			image = frames_data
 			counter = i
 
@@ -38,14 +40,16 @@ class VideoOutputHandler(OutputHandler):
 				stream.height = h
 				stream.width = w
 
-				if frames_group:
-					if not group:
-						group = frames_group[group_i]
-						group_i += 1
-					else:
-						group -= 1
-
-					counter = group_i + group
+			if frames_group:
+				if i < group:
+					counter = group_i
+				else:
+					group_i += 1
+					new_group = frames_group[group_i]
+					if not new_group:
+						new_group = 1
+					group += new_group
+					counter = group_i
 
 			if data._frames_face_boxes:
 				frame_boxes = data._frames_face_boxes[counter]
@@ -67,10 +71,6 @@ class VideoOutputHandler(OutputHandler):
 														 display_str_list=[name],
 														 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
 
-			# Key Frame
-			color = 0 if frames_key else 125
-			cv2.putText(image, "KEY", (int(w * 0.05), int(h * 0.05)), cv2.FONT_HERSHEY_DUPLEX, 1, color)
-
 			if data._frames_correlation:
 				color = 0
 				cor = data._frames_correlation[i]
@@ -83,7 +83,6 @@ class VideoOutputHandler(OutputHandler):
 			for packet in stream.encode(frame):
 				container.mux(packet)
 
-			i += 1
 			bar.next()
 
 		# flush stream

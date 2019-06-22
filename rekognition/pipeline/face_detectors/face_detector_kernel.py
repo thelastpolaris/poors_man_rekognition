@@ -35,7 +35,9 @@ class FaceDetectorKernel(Kernel):
 		if benchmark:
 			start = time.time()
 
-		for frames_data, frames_pts in frames_generator:
+		enum_frames = enumerate(frames_generator)
+
+		for i, (frames_data, frames_pts) in enum_frames:
 			image = frames_data
 
 			if bar is None:
@@ -47,8 +49,9 @@ class FaceDetectorKernel(Kernel):
 
 			if min_score > 0:
 				for b in range(len(boxes)):
-					if scores[b] > min_score:
-						frame_boxes.append(boxes[b])
+					if boxes[b][2] and boxes[b][3]: # Check that box has width and height > 0
+						if scores[b] > min_score:
+							frame_boxes.append(boxes[b])
 			else:
 				frame_boxes = boxes
 				benchmark_data["scores"] = scores

@@ -33,7 +33,7 @@ class SimilarFramesKernel(Kernel):
 			last_frame = 0
 
 			if job_id != max_jobs - 1:
-				last_frame = first_frame + frames_per_job
+				last_frame = first_frame + frames_per_job + 1
 
 			frames_generator = frames_reader.get_frames(first_frame=first_frame, last_frame=last_frame)
 
@@ -43,21 +43,18 @@ class SimilarFramesKernel(Kernel):
 				sub_frames_pts = []
 
 				print("Started job # {}".format(job_id))
+				enum_frames = enumerate(frames_generator)
 
-				i = 0
-
-				for frames_data, frames_pts in frames_generator:
-					corr = 0
-
+				for i, (frames_data, frames_pts) in enum_frames:
 					if not prev_frame.any():
 						prev_frame = frames_data
 					else:
 						corr = target_func(prev_frame, frames_data)
 						prev_frame = frames_data
 
-					sub_frames_correlation.append(corr)
-					sub_frames_pts.append(frames_pts)
-					i += 1
+						sub_frames_correlation.append(corr)
+						sub_frames_pts.append(frames_pts)
+
 					if not i % verbose:
 						print("Job # {} - {}/{}".format(job_id, i, frames_num))
 
@@ -87,6 +84,9 @@ class SimilarFramesKernel(Kernel):
 
 			all_frames_correlation += results[1]
 			all_frames_pts += results[2]
+
+		all_frames_pts.append(0)
+		all_frames_correlation.append(0)
 
 		for p in processes:
 			p.join()
