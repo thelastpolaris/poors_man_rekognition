@@ -9,7 +9,7 @@
 # furnished to do so, subject to the following conditions:
 
 from progress.bar import Bar
-from .face_recognizer import FaceRecognizerElem
+from .face_recognizer_kernel import FaceRecognizerKernel
 import tensorflow as tf
 import facenet.src.facenet as facenet
 import pickle
@@ -24,11 +24,19 @@ absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
-class FacenetRecognizer(Kernel):
+class FacenetRecognizer(FaceRecognizerKernel):
 	def __init__(self, facenet_model, facenet_classifier=parentDir):
 		super().__init__()
 		self._facenet_model = facenet_model
 		self._facenet_classifier = facenet_classifier
+
+	def load_model(self):
+		self._graph = tf.Graph()
+		self._sess = tf.Session()
+
+		# Load the model
+		with self._sess.as_default():
+			facenet.load_model(self._facenet_model)
 
 	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
 		images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
@@ -38,9 +46,6 @@ class FacenetRecognizer(Kernel):
 
 		emb_array = None
 
-		# print('Calculating features for images')
-
-		# bar = Bar('Processing', max = len(input_data))
 		i = 0
 
 		if data_from_pipeline:
@@ -52,7 +57,6 @@ class FacenetRecognizer(Kernel):
 				for face in faces:
 					img = face
 
-					print(img.shape)
 					img = cv2.resize(img, dsize=(image_size, image_size), interpolation=cv2.INTER_CUBIC)
 
 					img = facenet.prewhiten(img)
@@ -63,8 +67,6 @@ class FacenetRecognizer(Kernel):
 
 				feed_dict = {images_placeholder: np.array(face_images), phase_train_placeholder: False}
 				emb_array = self._sess.run(embeddings, feed_dict=feed_dict)
-
-		# bar.next()
 		else:
 			nrof_images = len(faces)
 			nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / batch_size))
@@ -78,9 +80,6 @@ class FacenetRecognizer(Kernel):
 				feed_dict = {images_placeholder: images, phase_train_placeholder: False}
 				emb_array[start_index:end_index, :] = self._sess.run(embeddings, feed_dict=feed_dict)
 
-		# bar.goto(bar.index + end_index - start_index)
-
-		# bar.finish()
 
 		return emb_array
 
@@ -105,62 +104,3 @@ class FacenetRecognizer(Kernel):
 		with open(model_name, 'wb') as outfile:
 			pickle.dump((data_emb, class_names, labels), outfile)
 		print('Saved classifier model to file "%s"' % model_name)
-
-	def predict(self, connection, frames_face_boxes, frames_reader):
-		self._graph = tf.Graph()
-		self._sess = tf.Session()
-
-		print("Recognizing the face")
-
-		# Load the model
-		with self._sess.as_default():
-			facenet.load_model(self._facenet_model)
-
-		infile = open(self._facenet_classifier, 'rb')
-		(model_emb, class_names, labels) = pickle.load(infile)
-		print('Loaded classifier model from file "%s"' % self._facenet_classifier)
-
-		n_ngbr = 10
-		nbrs = NearestNeighbors(n_neighbors=n_ngbr, algorithm='ball_tree').fit(model_emb)
-
-		bar = Bar('Processing', max = frames_reader.frames_num())
-
-		faces_names = []
-		i = 0
-
-		frames_generator = frames_reader.get_frames()
-
-		for frames_data, frames_pts in frames_generator:
-			boxes = frames_face_boxes[i]
-			i += 1
-
-			frame_names = []
-
-			if len(boxes):
-				faces = utils.extract_boxes(frames_data, boxes)
-
-				emb_array = self.calculate_embeddings(faces)
-
-				if len(faces):
-					distances, indices = nbrs.kneighbors(emb_array)
-
-					for f in range(len(faces)):
-						inds = indices[f]
-						classes = np.array([labels[i] for i in inds])
-						label = Counter(classes).most_common(1)[0][0]
-
-						person_name = class_names[label]
-						confidence = np.sum(classes == label) / n_ngbr
-
-						if confidence <= 0.3:
-							person_name = "Unknown"
-
-						frame_names.append((person_name, confidence))
-
-			bar.next()
-
-			faces_names.append(frame_names)
-
-		connection.send(faces_names)
-
-		bar.finish()

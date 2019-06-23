@@ -14,7 +14,6 @@ def extract_boxes(image, boxes):
 
 			if box[i] > 1:
 				box[i] = 1.0
-		print(box)
 
 		# Normalized coordinates
 		if is_normalized(box):

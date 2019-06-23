@@ -54,8 +54,8 @@ simframes = SimilarFramesFinder(CompHist())
 
 # Face Detectors
 # face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
-face_detector = FaceDetectorElem(YOLOv3FaceDetector())
-# face_detector = FaceDetectorElem(DSFDFaceDetector())
+# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet_20180408.pb", fileDir + "/rekognition/model/pozner.pkl"))
@@ -74,7 +74,7 @@ print(pipeline)
 benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + filename_wo_ext + '.xml'
 # benchmark_boxes = ""
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
               simframes: {"benchmark": True,  "sim_threshold": 0.99, "max_jobs": 10},
               face_detector: {"min_score": 0.6, "benchmark": True, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": filename_wo_ext + "_" + face_detector.__str__()}})
