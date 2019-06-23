@@ -8,26 +8,20 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-from progress.bar import Bar
 from .face_recognizer_kernel import FaceRecognizerKernel
 import tensorflow as tf
 import facenet.src.facenet as facenet
-import pickle
-from sklearn.neighbors import NearestNeighbors
 import os, math, cv2
 import numpy as np
-from collections import Counter
-from ..kernel import Kernel
-from ...utils import utils
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 parentDir = os.path.dirname(fileDir)
 
 class FacenetRecognizer(FaceRecognizerKernel):
-	def __init__(self, facenet_model, facenet_classifier=parentDir):
+	def __init__(self, facenet_classifier=parentDir):
 		super().__init__()
-		self._facenet_model = facenet_model
+		self._facenet_model = parentDir + "/../model/facenet_20180408.pb"
 		self._facenet_classifier = facenet_classifier
 
 	def load_model(self):
@@ -82,25 +76,3 @@ class FacenetRecognizer(FaceRecognizerKernel):
 
 
 		return emb_array
-
-	def train(self, dataset_folder, model_name):
-		dataset = facenet.get_dataset(dataset_folder)
-
-		# Check that there are at least one training image per class
-		# for cls in dataset:
-		# assert(len(cls.image_paths) > 0, 'There must be at least one image for each class in the dataset')
-
-		paths, labels = facenet.get_image_paths_and_labels(dataset)
-
-		print('Number of classes: %d' % len(dataset))
-		print('Number of images: %d' % len(paths))
-
-		print("Calculating embeddings for new data")
-		data_emb = self.calculate_embeddings(paths, False)
-
-		class_names = [cls.name.replace('_', ' ') for cls in dataset]
-
-		# Saving classifier model
-		with open(model_name, 'wb') as outfile:
-			pickle.dump((data_emb, class_names, labels), outfile)
-		print('Saved classifier model to file "%s"' % model_name)

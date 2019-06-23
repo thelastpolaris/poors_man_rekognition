@@ -10,7 +10,6 @@ class SimilarFramesFinder(PipelineElement):
 		sim_count = 0
 		frames_group = []
 
-
 		for i, corr in enumerate(data._frames_correlation):
 			sim_count += 1
 			if corr < sim_threshold:
@@ -22,7 +21,7 @@ class SimilarFramesFinder(PipelineElement):
 
 		data.frames_reader.frames_group = frames_group
 
-		benchmark_data["Similar Frames"] = len(frames_group)
+		benchmark_data["Group Frames"] = len(frames_group)
 
 		if benchmark:
 			self.benchmark(data, benchmark_data)

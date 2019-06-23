@@ -6,6 +6,7 @@ from collections import Counter
 from ..kernel import Kernel
 from ...utils import utils
 import abc
+import facenet.src.facenet as facenet
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -23,9 +24,29 @@ class FaceRecognizerKernel(Kernel):
 	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
 		pass
 
-	@abc.abstractmethod
 	def train(self, dataset_folder, model_name):
-		pass
+		self.load_model()
+
+		dataset = facenet.get_dataset(dataset_folder)
+
+		# Check that there are at least one training image per class
+		# for cls in dataset:
+		# assert(len(cls.image_paths) > 0, 'There must be at least one image for each class in the dataset')
+
+		paths, labels = facenet.get_image_paths_and_labels(dataset)
+
+		print('Number of classes: %d' % len(dataset))
+		print('Number of images: %d' % len(paths))
+
+		print("Calculating embeddings for new data")
+		data_emb = self.calculate_embeddings(paths, False)
+
+		class_names = [cls.name.replace('_', ' ') for cls in dataset]
+
+		# Saving classifier model
+		with open(model_name, 'wb') as outfile:
+			pickle.dump((data_emb, class_names, labels), outfile)
+		print('Saved classifier model to file "%s"' % model_name)
 
 	def predict(self, connection, frames_face_boxes, frames_reader):
 		print("Recognizing the faces")

@@ -52,7 +52,6 @@ class VideoFrames:
 		skip_frames = 0
 
 		for i, frame in enumerate(decoder):
-
 			if self._max_frames > 0:
 				if i >= self._max_frames:
 					return None, None
@@ -73,10 +72,9 @@ class VideoFrames:
 				if self.frames_group and not skip_frames:
 					if group_i < len(self.frames_group):
 						skip_frames = self.frames_group[group_i] - 1
-						# if self.frames_group[group_i] == 1:
-						# 	skip_frames = 0
 						group_i += 1
-			# print("- {} {}".format(i, skip_frames))
+
+					# print("- {} {}".format(i, skip_frames))
 
 			image = frame.to_rgb().to_ndarray()
 

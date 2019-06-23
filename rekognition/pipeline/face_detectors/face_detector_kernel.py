@@ -35,13 +35,11 @@ class FaceDetectorKernel(Kernel):
 		if benchmark:
 			start = time.time()
 
-		enum_frames = enumerate(frames_generator)
+		bar = Bar('Processing', max=frames_reader.frames_num())
 
-		for i, (frames_data, frames_pts) in enum_frames:
+		for i, (frames_data, frames_pts) in enumerate(frames_generator):
+			bar.next()
 			image = frames_data
-
-			if bar is None:
-				bar = Bar('Processing', max=frames_reader.frames_num())
 
 			scores, boxes = self.inference(image)
 
@@ -56,7 +54,6 @@ class FaceDetectorKernel(Kernel):
 				frame_boxes = boxes
 				benchmark_data["scores"] = scores
 
-			bar.next()
 			i += 1
 
 			all_frames_face_boxes.append(frame_boxes)

@@ -1,6 +1,5 @@
 from ..kernel import Kernel
 import time
-from progress.bar import Bar
 import abc
 import numpy as np
 import multiprocessing
@@ -38,7 +37,7 @@ class SimilarFramesKernel(Kernel):
 			frames_generator = frames_reader.get_frames(first_frame=first_frame, last_frame=last_frame)
 
 			def process_frames(connection, frames_generator, target_func, job_id, frames_num, verbose = 50):
-				prev_frame = np.array([])
+				prev_frame = None
 				sub_frames_correlation = []
 				sub_frames_pts = []
 
@@ -46,7 +45,8 @@ class SimilarFramesKernel(Kernel):
 				enum_frames = enumerate(frames_generator)
 
 				for i, (frames_data, frames_pts) in enum_frames:
-					if not prev_frame.any():
+					corr = 0
+					if prev_frame is None:
 						prev_frame = frames_data
 					else:
 						corr = target_func(prev_frame, frames_data)
@@ -76,17 +76,15 @@ class SimilarFramesKernel(Kernel):
 		for p in processes:
 			p.start()
 
-		all_frames_pts = []
-		all_frames_correlation = []
+		# Account for the first frame. We don't calculate similarity for it and PTS is obviously 0
+		all_frames_pts = [0]
+		all_frames_correlation = [0]
 
 		for c in connections:
 			results = c[1].recv()
 
 			all_frames_correlation += results[1]
 			all_frames_pts += results[2]
-
-		all_frames_pts.append(0)
-		all_frames_correlation.append(0)
 
 		for p in processes:
 			p.join()
