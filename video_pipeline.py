@@ -75,6 +75,6 @@ benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + file
 # benchmark_boxes = ""
 
 pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
-              simframes: {"benchmark": True,  "sim_threshold": 0.99, "max_jobs": 10},
+              simframes: {"benchmark": True,  "sim_threshold": 0.995, "max_jobs": 10},
               face_detector: {"min_score": 0.6, "benchmark": True, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": filename_wo_ext + "_" + face_detector.__str__()}})
