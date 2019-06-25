@@ -1,3 +1,6 @@
+# Part of the code used is given under MIT License
+# Copyright (c) 2018 Jiankang Deng and Jia Guo
+
 import os
 import numpy as np
 import mxnet as mx

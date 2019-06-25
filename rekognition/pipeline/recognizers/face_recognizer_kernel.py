@@ -20,14 +20,57 @@ class FaceRecognizerKernel(Kernel):
 	def __init__(self):
 		super().__init__()
 		self._classifier = None
+		self._normalize_image = True
+		self._preprocess = True
+		self._preprocess_batch = False
 
 	@abc.abstractmethod
 	def load_model(self):
 		pass
 
 	@abc.abstractmethod
-	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
+	def preprocess_face(self, face_img):
 		pass
+
+	@abc.abstractmethod
+	def calculate_embeddings(self, face_img):
+		pass
+
+	def preprocess_batch(self, faces):
+		imgs = []
+
+		for face in faces:
+			if self._preprocess:
+				imgs.append(self.preprocess_face(face))
+
+		return np.float32(imgs)
+
+	def process_faces(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
+		if data_from_pipeline:
+			emb_array = []
+
+			if len(faces):
+				emb_array = self.calculate_embeddings(self.preprocess_batch(faces))
+		else:
+			num_images = len(faces)
+			num_batches_per_epoch = int(math.ceil(1.0 * num_images / batch_size))
+			emb_array = np.zeros((num_images, self._embedding_size))
+			bar = Bar('Processing', max= num_images)
+
+			for i in range(num_batches_per_epoch):
+				start_index = i * batch_size
+				end_index = min((i + 1) * batch_size, num_images)
+
+				paths_batch = faces[start_index:end_index]
+				images = facenet.load_data(paths_batch, False, False, image_size, self._normalize_image)
+
+				if self._preprocess_batch:
+					images = self.preprocess_batch(images)
+
+				emb_array[start_index:end_index, :] = self.calculate_embeddings(images)
+				bar.next(end_index - start_index)
+
+		return emb_array
 
 	def train(self, dataset_folder, model_name, batch_size = 100, backend="FAISS"):
 		self.load_model()
@@ -44,7 +87,7 @@ class FaceRecognizerKernel(Kernel):
 		print('Number of images: %d' % len(paths))
 
 		print("Calculating embeddings for new data")
-		data_emb = self.calculate_embeddings(paths, data_from_pipeline=False, batch_size = batch_size )
+		data_emb = self.process_faces(paths, data_from_pipeline=False, batch_size = batch_size )
 		data_emb = np.float32(data_emb)
 		dimension = int(data_emb.shape[1])
 
@@ -105,7 +148,7 @@ class FaceRecognizerKernel(Kernel):
 			if len(boxes):
 				faces = utils.extract_boxes(frames_data, boxes)
 
-				emb_array = self.calculate_embeddings(faces)
+				emb_array = self.process_faces(faces)
 
 				if len(faces):
 					if backend is "SciKit":

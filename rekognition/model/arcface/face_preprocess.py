@@ -1,3 +1,5 @@
+# Part of the code used is given under MIT License
+# Copyright (c) 2018 Jiankang Deng and Jia Guo
 
 import cv2
 import numpy as np
@@ -91,13 +93,7 @@ def preprocess(img, bbox=None, landmark=None, **kwargs):
     ret = img[bb[1]:bb[3],bb[0]:bb[2],:]
 
     if len(image_size)>0:
-      if len(ret.shape) == 4: # Batch preprocessing
-        ret_batch = []
-        for i in range(len(ret)):
-          ret_batch.append(cv2.resize(ret[i], (image_size[1], image_size[0])))
-        ret = np.float32(ret_batch)
-      else:
-        ret = cv2.resize(ret, (image_size[1], image_size[0]))
+      ret = cv2.resize(ret, (image_size[1], image_size[0]))
     return ret 
   else: #do align using landmark
     assert len(image_size)==2

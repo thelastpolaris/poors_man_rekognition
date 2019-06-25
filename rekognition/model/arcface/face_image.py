@@ -1,3 +1,5 @@
+# Part of the code used is given under MIT License
+# Copyright (c) 2018 Jiankang Deng and Jia Guo
 
 from easydict import EasyDict as edict
 import os

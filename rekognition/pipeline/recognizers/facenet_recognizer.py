@@ -21,8 +21,9 @@ parentDir = os.path.dirname(fileDir)
 class FacenetRecognizer(FaceRecognizerKernel):
 	def __init__(self, facenet_classifier=parentDir):
 		super().__init__()
-		self._facenet_model = parentDir + "/../model/facenet_20180408.pb"
+		self._facenet_model = parentDir + "/../model/facenet/facenet_20180408.pb"
 		self._classifier = facenet_classifier
+		self._image_size = 160
 
 	def load_model(self):
 		self._graph = tf.Graph()
@@ -37,42 +38,17 @@ class FacenetRecognizer(FaceRecognizerKernel):
 		self._phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
 		self._embedding_size = self._embeddings.get_shape()[1]
 
-	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
-		emb_array = None
+	def preprocess_face(self, face_img):
+		face_img = cv2.resize(face_img, dsize=(self._image_size, self._image_size), interpolation=cv2.INTER_CUBIC)
 
-		i = 0
+		face_img = facenet.prewhiten(face_img)
+		face_img = facenet.crop(face_img, False, self._image_size)
+		face_img = facenet.flip(face_img, False)
 
-		if data_from_pipeline:
-			i += 1
+		return face_img
 
-			if len(faces):
-				face_images = []
+	def calculate_embeddings(self, face_img):
+		feed_dict = {self._images_placeholder: np.float32(face_img), self._phase_train_placeholder: False}
+		emb_array = self._sess.run(self._embeddings, feed_dict=feed_dict)
 
-				for face in faces:
-					img = face
-
-					img = cv2.resize(img, dsize=(image_size, image_size), interpolation=cv2.INTER_CUBIC)
-
-					img = facenet.prewhiten(img)
-					img = facenet.crop(img, False, image_size)
-					img = facenet.flip(img, False)
-
-					face_images.append(img)
-
-				feed_dict = {self._images_placeholder: np.array(face_images), self._phase_train_placeholder: False}
-				emb_array = self._sess.run(self._embeddings, feed_dict=feed_dict)
-		else:
-			nrof_images = len(faces)
-			nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / batch_size))
-			emb_array = np.zeros((nrof_images, self._embedding_size))
-
-			for i in range(nrof_batches_per_epoch):
-				start_index = i * batch_size
-				end_index = min((i + 1) * batch_size, nrof_images)
-				paths_batch = faces[start_index:end_index]
-				images = facenet.load_data(paths_batch, False, False, image_size)
-				feed_dict = {self._images_placeholder: images, self._phase_train_placeholder: False}
-				emb_array[start_index:end_index, :] = self._sess.run(self._embeddings, feed_dict=feed_dict)
-
-
-		return emb_array
+		return np.float32(emb_array)
