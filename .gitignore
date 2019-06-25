@@ -17,6 +17,6 @@
 *.pth
 /venv
 /test
-
+*.params
 # Allow
 !/resources/static/*.png

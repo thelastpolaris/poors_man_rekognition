@@ -1,8 +1,7 @@
 import os, sys
-from rekognition.pipeline.pipeline import Pipeline
 import argparse
 
-from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
+from rekognition.pipeline.recognizers.arcface_recognizer import ArcFaceRecognizer
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -16,4 +15,4 @@ args = vars(ap.parse_args())
 
 input_path = args["input"]
 
-FacenetRecognizer().train(input_path, "facenet_classifier.pkl")
+ArcFaceRecognizer().train(input_path, "arcface_classifier_scikit.pkl", batch_size = 16, backend="SciKit")

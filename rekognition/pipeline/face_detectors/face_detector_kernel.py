@@ -24,8 +24,6 @@ class FaceDetectorKernel(Kernel):
 			benchmark_data = dict()
 
 		print("Detecting faces in video")
-		bar = None
-		i = 0
 
 		all_frames_pts = []
 		all_frames_face_boxes = []

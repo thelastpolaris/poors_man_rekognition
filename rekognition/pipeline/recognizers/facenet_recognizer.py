@@ -22,7 +22,7 @@ class FacenetRecognizer(FaceRecognizerKernel):
 	def __init__(self, facenet_classifier=parentDir):
 		super().__init__()
 		self._facenet_model = parentDir + "/../model/facenet_20180408.pb"
-		self._facenet_classifier = facenet_classifier
+		self._classifier = facenet_classifier
 
 	def load_model(self):
 		self._graph = tf.Graph()
@@ -32,12 +32,12 @@ class FacenetRecognizer(FaceRecognizerKernel):
 		with self._sess.as_default():
 			facenet.load_model(self._facenet_model)
 
-	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
-		images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-		embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-		phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-		embedding_size = embeddings.get_shape()[1]
+		self._images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+		self._embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+		self._phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+		self._embedding_size = self._embeddings.get_shape()[1]
 
+	def calculate_embeddings(self, faces, data_from_pipeline=True, batch_size=100, image_size=160):
 		emb_array = None
 
 		i = 0
@@ -59,20 +59,20 @@ class FacenetRecognizer(FaceRecognizerKernel):
 
 					face_images.append(img)
 
-				feed_dict = {images_placeholder: np.array(face_images), phase_train_placeholder: False}
-				emb_array = self._sess.run(embeddings, feed_dict=feed_dict)
+				feed_dict = {self._images_placeholder: np.array(face_images), self._phase_train_placeholder: False}
+				emb_array = self._sess.run(self._embeddings, feed_dict=feed_dict)
 		else:
 			nrof_images = len(faces)
 			nrof_batches_per_epoch = int(math.ceil(1.0 * nrof_images / batch_size))
-			emb_array = np.zeros((nrof_images, embedding_size))
+			emb_array = np.zeros((nrof_images, self._embedding_size))
 
 			for i in range(nrof_batches_per_epoch):
 				start_index = i * batch_size
 				end_index = min((i + 1) * batch_size, nrof_images)
 				paths_batch = faces[start_index:end_index]
 				images = facenet.load_data(paths_batch, False, False, image_size)
-				feed_dict = {images_placeholder: images, phase_train_placeholder: False}
-				emb_array[start_index:end_index, :] = self._sess.run(embeddings, feed_dict=feed_dict)
+				feed_dict = {self._images_placeholder: images, self._phase_train_placeholder: False}
+				emb_array[start_index:end_index, :] = self._sess.run(self._embeddings, feed_dict=feed_dict)
 
 
 		return emb_array
