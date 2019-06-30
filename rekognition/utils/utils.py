@@ -1,6 +1,8 @@
 import numpy as np
 import xmltodict
 
+IOU_THRESHOLD = 0.5
+
 def extract_boxes(image, boxes):
 	height = image.shape[0]
 	width = image.shape[1]
@@ -42,17 +44,21 @@ def boxes_from_cvat_xml(path_to_xml):
 		resolution = task["original_size"]
 		width, height = int(resolution["width"]), int(resolution["height"])
 
-		frames = [[] for i in range(frames_num)]
+		frames_boxes = [[] for i in range(frames_num)]
+		frames_labels = [[] for i in range(frames_num)]
 
 		# Extract boxes
 		for track in root["track"]:
+			label = track["@label"]
+
 			for box in track["box"]:
 				frame = int(box["@frame"])
 				box_array = np.array([int(float(box["@ytl"])), int(float(box["@xtl"])),
 									  int(float(box["@ybr"])), int(float(box["@xbr"]))])
-				frames[frame].append(box_array)
+				frames_boxes[frame].append(box_array)
+				frames_labels[frame].append(label)
 
-		return frames, width, height
+		return frames_boxes, width, height, frames_labels
 
 		# print(root["track"][0]["box"][0]["@frame"])
 
@@ -112,31 +118,39 @@ def IoU(box1: np.ndarray, box2: np.ndarray):
 
 	return base_mat * intersect_ratio
 
-def calculate_tp_fp_fn(frame_boxes, bench_boxes, bench_w, bench_h, IoU_threshold = 0.5):
-	TP = 0
-	FP = 0
-	FN = 0
+def calculate_tp_fp_fn(frame_boxes, bench_boxes, bench_w, bench_h, frame_labels = None, bench_labels = None, IoU_threshold = IOU_THRESHOLD):
+	detection_TP = 0
+	detection_FP = 0
+	detection_FN = 0
 
-	frame_predictions = []
+	recognition_TP = 0
+	recognition_FP = 0
+
 	for bench_box in bench_boxes:
 		bench_found = False
 		for box in frame_boxes:
 			if IoU(restore_normalization(box, bench_h, bench_w), bench_box) > IoU_threshold:
 				bench_found = True
-				frame_predictions.append(1)
 		if not bench_found:
-			frame_predictions.append(0)
-			FN += 1
+			detection_FN += 1
 
-
-	for box in frame_boxes:
+	for i, box in enumerate(frame_boxes):
 		is_true = False
-		for bench in bench_boxes:
+		for b, bench in enumerate(bench_boxes):
 			if IoU(restore_normalization(box, bench_h, bench_w), bench) > IoU_threshold:
-				TP += 1
+				detection_TP += 1
+				if bench_labels:
+					if frame_labels[i] == bench_labels[b]:
+						recognition_TP += 1
+					else:
+						recognition_FP += 1
 				is_true = True
 				break
 		if not is_true:
-			FP += 1
+			detection_FP += 1
+			recognition_FP += 1
 
-	return TP, FP, FN
+	if frame_labels is not None:
+		return recognition_TP, recognition_FP
+	else:
+		return detection_TP, detection_FP, detection_FN

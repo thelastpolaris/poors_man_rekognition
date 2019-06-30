@@ -40,8 +40,14 @@ class Data:
 			for k, v in self.__elem_values.items():
 				print(k, v)
 
-		def save_benchmark(self):
-			pass
+		def save_benchmark(self, path_to_file):
+			benchmark_out = ""
+			for k, v in self.__elem_values.items():
+				newline = "\n" if benchmark_out else ""
+				benchmark_out = "{}{} {} {}".format(benchmark_out, newline, k, v)
+
+			with open(path_to_file + ".txt", 'w') as data:
+				data.write(benchmark_out)
 			# "output/" + output_name + '_output.mp4'
 
 class Pipeline:
@@ -65,7 +71,7 @@ class Pipeline:
 		self.__data_holder = Data()
 
 		for elem in self.__elements:
-			if elem in params_dict.keys():
+			if elem in params_dict.keys() and elem != self:
 				elem.run(self.__data_holder, **params_dict[elem])
 			else:
 				elem.run(self.__data_holder)
@@ -74,6 +80,9 @@ class Pipeline:
 
 		self.__data_holder.benchmark.print_benchmark()
 		print("Done! Total time elapsed {:.2f} seconds".format(end - start))
+		if self in params_dict.keys():
+			if "out_name" in params_dict[self]:
+				self.__data_holder.benchmark.save_benchmark(params_dict[self]["out_name"])
 
 		return True
 

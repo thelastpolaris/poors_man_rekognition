@@ -22,7 +22,7 @@ class FaceDetectorElem(PipelineElement):
 			scores = benchmark_data["scores"]
 
 		if benchmark_boxes != None:
-			bench_boxes, bench_w, bench_h = boxes_from_cvat_xml(benchmark_boxes)
+			bench_boxes, bench_w, bench_h, bench_labels = boxes_from_cvat_xml(benchmark_boxes)
 
 			if bench_boxes:
 				TP = 0
@@ -34,9 +34,7 @@ class FaceDetectorElem(PipelineElement):
 				bench_count = 0
 
 				for (i, frame_boxes) in enumerate(data._frames_face_boxes):
-					_frame_boxes = frame_boxes
-
-					group = 0
+					group = 1
 					if frames_group:
 						group = frames_group[i]
 

@@ -9,7 +9,6 @@ import facenet.src.facenet as facenet
 import time
 # import faiss
 from collections import Counter
-
 import math
 
 absFilePath = os.path.abspath(__file__)
@@ -86,6 +85,8 @@ class FaceRecognizerKernel(Kernel):
 		print('Number of classes: %d' % len(dataset))
 		print('Number of images: %d' % len(paths))
 
+
+
 		print("Calculating embeddings for new data")
 		data_emb = self.process_faces(paths, data_from_pipeline=False, batch_size = batch_size )
 		data_emb = np.float32(data_emb)
@@ -111,7 +112,7 @@ class FaceRecognizerKernel(Kernel):
 				pickle.dump((data_emb, class_names, labels), outfile)
 		print('\nSaved classifier model to file "%s"' % model_name)
 
-	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS"):
+	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10):
 		print("Recognizing the faces")
 		self.load_model()
 
@@ -119,7 +120,6 @@ class FaceRecognizerKernel(Kernel):
 		if benchmark:
 			benchmark_data = dict()
 
-		n_ngbr = 10
 		if backend is "SciKit":
 			infile = open(self._classifier, 'rb')
 			(model_emb, class_names, labels) = pickle.load(infile)
@@ -132,6 +132,7 @@ class FaceRecognizerKernel(Kernel):
 		print('Loaded classifier model from file "%s"' % self._classifier)
 
 		faces_names = []
+		frames_embs = []
 
 		frames_generator = frames_reader.get_frames()
 
@@ -168,9 +169,7 @@ class FaceRecognizerKernel(Kernel):
 							person_name = "Unknown"
 
 						frame_names.append((person_name, confidence))
-
 			bar.next()
-
 			faces_names.append(frame_names)
 
 		if benchmark:

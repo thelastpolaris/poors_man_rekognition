@@ -55,16 +55,16 @@ simframes = SimilarFramesFinder(CompHist())
 
 # Face Detectors
 # face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
-# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
-face_detector = FaceDetectorElem(MTCNNFaceDetector())
+# face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
-face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_pozner_scikit.pkl"))
-# face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_pozner_scikit.pkl"))
+face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit.pkl"))
+# face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit.pkl"))
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
-                     simframes,
+                     # simframes,
                      face_detector,
                      face_recognizer,
                      output_hand
@@ -73,11 +73,13 @@ pipeline = Pipeline([datahandler,
 print(pipeline)
 
 # Benchmarks stuff
-# benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + filename_wo_ext + '.xml'
-benchmark_boxes = None
+benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + filename_wo_ext + '.xml'
+# benchmark_boxes = None
+out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100},
-              simframes: {"benchmark": True,  "sim_threshold": 0.99, "max_jobs": 10},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
+              simframes: {"benchmark": True,  "sim_threshold": 0.993, "max_jobs": 10},
               face_detector: {"benchmark":True, "min_score": 0.6, "benchmark_boxes": benchmark_boxes},
-              face_recognizer: {"benchmark":True, "backend":"SciKit"},
-              output_hand: {"output_name": "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)}})
+              face_recognizer: {"benchmark":True, "backend":"SciKit", "n_ngbr": 5, "benchmark_boxes": benchmark_boxes},
+              output_hand: {"output_name": out_name},
+              pipeline: {"out_name": "output/" + out_name}})
