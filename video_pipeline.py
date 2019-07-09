@@ -44,7 +44,7 @@ resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
-datahandler = VideoHandlerElem([resizer])
+datahandler = VideoHandlerElem([])
 
 # Group similar frames
 simframes = SimilarFramesFinder(CompHist())
@@ -56,8 +56,8 @@ face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
-# face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit_aug.pkl"))
-face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit_aug.pkl"))
+face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit_aug.pkl"))
+# face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit_aug.pkl"))
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
@@ -74,8 +74,8 @@ benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + file
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500},
-              simframes: {"sim_threshold": 0.99, "max_jobs": 10},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100},
+              simframes: {"sim_threshold": 0.994, "max_jobs": 10},
               face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
               face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": out_name},

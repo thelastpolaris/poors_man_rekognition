@@ -5,12 +5,16 @@ class SimilarFramesFinder(PipelineElement):
 		super().__init__(kernel)
 
 	def run(self, data, benchmark=False, sim_threshold = 0.97, max_jobs = 4, max_group = 30):
-		data._frames_pts, data._frames_correlation, benchmark_data = self.kernel.run(data.frames_reader, benchmark, max_jobs)
+		frames_reader = data.get_value("frames_reader")
+		frames_pts, frames_correlation, benchmark_data = self.kernel.run(frames_reader, benchmark, max_jobs)
+
+		data.add_value("frames_pts", frames_pts)
+		data.add_value("frames_correlation", frames_correlation)
 
 		sim_count = 0
 		frames_group = []
 
-		for i, corr in enumerate(data._frames_correlation):
+		for i, corr in enumerate(frames_correlation):
 			sim_count += 1
 			if corr < sim_threshold:
 				frames_group.append(sim_count)
@@ -19,7 +23,7 @@ class SimilarFramesFinder(PipelineElement):
 		if sim_count:
 			frames_group.append(sim_count)
 
-		data.frames_reader.frames_group = frames_group
+		frames_reader.frames_group = frames_group
 
 		benchmark_data["Group Frames"] = len(frames_group)
 

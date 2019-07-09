@@ -27,6 +27,10 @@ class PipelineElement(ABC):
 	def run(self, **args):
 		pass
 
+	def benchmark(self, **args):
+		pass
+
+
 	def __str__(self):
 		if self.__kernel:
 			return str(self.__class__.__name__) + "({})".format(str(self.__kernel.__class__.__name__))

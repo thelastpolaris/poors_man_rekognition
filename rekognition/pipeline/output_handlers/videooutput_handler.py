@@ -16,14 +16,13 @@ class VideoOutputHandler(OutputHandler):
 
 		fps = 25
 
-		frames_reader = data.frames_reader
+		frames_reader = data.get_value("frames_reader")
 
 		print("Saving processed video")
 		bar = Bar('Processing', max = frames_reader.frames_num(group_frames=False))
 
 		frames_generator = frames_reader.get_frames(group_frames=False)
-
-		frames_group = data.frames_reader.frames_group
+		frames_group = frames_reader.frames_group
 
 		enum_frames = enumerate(frames_generator)
 		if frames_group:
@@ -51,15 +50,17 @@ class VideoOutputHandler(OutputHandler):
 					group += new_group
 					counter = group_i
 
-			if data._frames_face_boxes:
-				frame_boxes = data._frames_face_boxes[counter]
+			frames_face_boxes = data.get_value("frames_face_boxes")
+			if frames_face_boxes:
+				frame_boxes = frames_face_boxes[counter]
 
 				if len(frame_boxes):
 					for f in range(len(frame_boxes)):
 						ymin, xmin, ymax, xmax = frame_boxes[f]
 
-						if data._frames_face_names:
-							name = data._frames_face_names[counter][f][0]
+						frames_face_names = data.get_value("frames_face_names")
+						if frames_face_names:
+							name = frames_face_names[counter][f][0]
 						else:
 							name = ""
 

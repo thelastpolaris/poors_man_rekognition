@@ -6,8 +6,10 @@ class FaceRecognizerElem(PipelineElement):
 		super().__init__(kernel)
 
 	def run(self, data, benchmark = False, benchmark_boxes=None, backend="FAISS", n_ngbr = 10, face_tracking=True):
-		data._frames_face_names, benchmark_data = \
-			self.kernel.run(data._frames_face_boxes, data.frames_reader, benchmark, backend, n_ngbr, face_tracking)
+		frames_face_names, benchmark_data = \
+			self.kernel.run(data.get_value("frames_face_boxes"), data.get_value("frames_reader"), benchmark, backend,
+																								n_ngbr, face_tracking)
+		data.add_value("frames_face_names", frames_face_names)
 
 		if benchmark:
 			self.benchmark(data, benchmark_data, benchmark_boxes)
@@ -26,14 +28,15 @@ class FaceRecognizerElem(PipelineElement):
 			if bench_boxes:
 				TP = 0
 				FP = 0
-				FN = 0
 
-				frames_group = data.frames_reader.frames_group
+				frames_group = data.get_value("frames_reader").frames_group
 
 				bench_count = 0
 
-				for (i, frame_boxes) in enumerate(data._frames_face_boxes):
-					frame_labels = [ face_name[0].replace(" ", "_") for face_name in data._frames_face_names[i] ]
+				frames_face_names = data.get_value("frames_face_names")
+
+				for (i, frame_boxes) in enumerate(data.get_value("frames_face_boxes")):
+					frame_labels = [ face_name[0].replace(" ", "_") for face_name in frames_face_names[i] ]
 
 					group = 1
 					if frames_group:

@@ -111,7 +111,7 @@ class VideoHandlerElem(PipelineElement):
 		# Get video stream
 		stream = container.streams.video[0]
 
-		data.frames_reader = VideoFrames(container, stream, self._preprocessors, self._max_frames, self.input_path)
+		data.add_value("frames_reader", VideoFrames(container, stream, self._preprocessors, self._max_frames, self.input_path))
 
 	@property
 	def max_frames(self):
