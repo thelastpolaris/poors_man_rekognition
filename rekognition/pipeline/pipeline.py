@@ -11,6 +11,7 @@ class Data:
 		self._frames_pts = None
 		self._frames_face_boxes = None
 		self._frames_face_names = None
+		self._frames_face_embs = None
 
 		self.__benchmark = self.Benchmark()
 
@@ -63,7 +64,7 @@ class Pipeline:
 		self.__elements.append(element)
 		element.parent_pipeline = self
 
-	def run(self, params_dict):
+	def run(self, params_dict, benchmark = False):
 		assert (len(self.__elements)), "Pipeline needs to have at least one PipelineElement"
 
 		start = time.time()
@@ -72,9 +73,9 @@ class Pipeline:
 
 		for elem in self.__elements:
 			if elem in params_dict.keys() and elem != self:
-				elem.run(self.__data_holder, **params_dict[elem])
+				elem.run(self.__data_holder, benchmark = benchmark, **params_dict[elem])
 			else:
-				elem.run(self.__data_holder)
+				elem.run(self.__data_holder, benchmark = benchmark)
 
 		end = time.time()
 

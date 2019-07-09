@@ -7,7 +7,7 @@ from PIL import Image
 import cv2
 
 class VideoOutputHandler(OutputHandler):
-	def run(self, data, output_name):
+	def run(self, data, benchmark, output_name):
 		if not os.path.exists("output"):
 			os.mkdir("output")
 
@@ -70,14 +70,6 @@ class VideoOutputHandler(OutputHandler):
 														 xmax,
 														 display_str_list=[name],
 														 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
-
-			# if data._frames_correlation:
-			# 	color = 0
-			# 	cor = data._frames_correlation[i]
-			# 	if cor < 0.97:
-			# 		color = 255
-			#
-			# 	cv2.putText(image, str(cor), (int(w*0.05), int(h*0.95)), cv2.FONT_HERSHEY_DUPLEX, 1, color)
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

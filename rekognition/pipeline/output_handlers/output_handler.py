@@ -4,5 +4,5 @@ class OutputHandler(PipelineElement):
 	def __init__(self):
 		super().__init__()
 
-	def run(self, path_to_data):
+	def run(self, data, benchmark, path_to_data):
 		pass

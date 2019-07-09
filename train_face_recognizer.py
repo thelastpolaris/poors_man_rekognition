@@ -16,5 +16,5 @@ args = vars(ap.parse_args())
 
 input_path = args["input"]
 
-ArcFaceRecognizer().train(input_path, "arcface_first_evals_scikit.pkl", batch_size = 16, backend="SciKit")
-# FacenetRecognizer().train(input_path, "facenet_first_evals_scikit.pkl", batch_size = 100, backend="SciKit")
+# ArcFaceRecognizer().train(input_path, "arcface_first_evals_scikit.pkl", batch_size = 16, backend="SciKit")
+FacenetRecognizer().train(input_path, "facenet_first_evals_scikit.pkl", batch_size = 100, backend="SciKit")

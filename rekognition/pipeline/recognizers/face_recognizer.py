@@ -5,8 +5,9 @@ class FaceRecognizerElem(PipelineElement):
 	def __init__(self, kernel):
 		super().__init__(kernel)
 
-	def run(self, data, benchmark = False, backend="FAISS", n_ngbr = 10, benchmark_boxes=None):
-		data._frames_face_names, benchmark_data = self.kernel.run(data._frames_face_boxes, data.frames_reader, benchmark, backend, n_ngbr)
+	def run(self, data, benchmark = False, benchmark_boxes=None, backend="FAISS", n_ngbr = 10, face_tracking=True):
+		data._frames_face_names, benchmark_data = \
+			self.kernel.run(data._frames_face_boxes, data.frames_reader, benchmark, backend, n_ngbr, face_tracking)
 
 		if benchmark:
 			self.benchmark(data, benchmark_data, benchmark_boxes)

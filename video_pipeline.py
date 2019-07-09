@@ -8,8 +8,6 @@ from rekognition.pipeline.pipeline import Pipeline
 from rekognition.pipeline.input_handlers.preprocessors import ResizeImage, InvertColors, Lambda
 from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
 
-import tensorflow
-
 # Computer Vision
 from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFramesFinder
 from rekognition.pipeline.similar_frames.comp_hist_kernel import CompHist
@@ -20,7 +18,6 @@ from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
 from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
 from rekognition.pipeline.face_detectors.mtcnn import MTCNNFaceDetector
-
 from rekognition.pipeline.face_detectors.dsfd import DSFDFaceDetector
 
 from rekognition.pipeline.recognizers.face_recognizer import FaceRecognizerElem
@@ -31,7 +28,7 @@ from rekognition.pipeline.recognizers.arcface_recognizer import ArcFaceRecognize
 from rekognition.pipeline.output_handlers.videooutput_handler import VideoOutputHandler
 
 absFilePath = os.path.abspath(__file__)
-fileDir = os.path.dirname(os.path.abspath(__file__)) + "/"
+fileDir = os.path.dirname(absFilePath) + "/"
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -59,12 +56,12 @@ face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
-face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit.pkl"))
-# face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit.pkl"))
+# face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit_aug.pkl"))
+face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit_aug.pkl"))
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
-                     # simframes,
+                     simframes,
                      face_detector,
                      face_recognizer,
                      output_hand
@@ -77,9 +74,9 @@ benchmark_boxes = fileDir + "test/videos/face_detection/benchmark_boxes/" + file
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 1000},
-              simframes: {"benchmark": True,  "sim_threshold": 0.993, "max_jobs": 10},
-              face_detector: {"benchmark":True, "min_score": 0.6, "benchmark_boxes": benchmark_boxes},
-              face_recognizer: {"benchmark":True, "backend":"SciKit", "n_ngbr": 5, "benchmark_boxes": benchmark_boxes},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500},
+              simframes: {"sim_threshold": 0.99, "max_jobs": 10},
+              face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
+              face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes},
               output_hand: {"output_name": out_name},
-              pipeline: {"out_name": "output/" + out_name}})
+              pipeline: {"out_name": "output/" + out_name}}, benchmark=True)

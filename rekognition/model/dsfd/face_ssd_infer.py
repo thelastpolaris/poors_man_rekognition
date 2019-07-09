@@ -5,9 +5,7 @@ from .data.config import TestBaseTransform, widerface_640 as cfg
 from .layers import Detect, get_prior_boxes, FEM, pa_multibox, mio_module, upsample_product
 from .utils import resize_image
 
-
 class SSD(nn.Module):
-
     def __init__(self, phase, nms_thresh=0.3, nms_conf_thresh=0.01):
         super(SSD, self).__init__()
         self.phase = phase

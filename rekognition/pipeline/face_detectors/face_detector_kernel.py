@@ -16,7 +16,7 @@ class FaceDetectorKernel(Kernel):
 	def inference(self, image):
 		pass
 
-	def predict(self, connection, frames_reader, min_score: float, benchmark: bool):
+	def predict(self, connection, frames_reader, benchmark: bool, min_score: float):
 		self.load_model()
 
 		benchmark_data = None

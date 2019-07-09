@@ -1,4 +1,3 @@
-from .data_handler import DataHandlerElem
 import av
 from ..pipeline_element import PipelineElement
 
@@ -74,8 +73,6 @@ class VideoFrames:
 						skip_frames = self.frames_group[group_i] - 1
 						group_i += 1
 
-					# print("- {} {}".format(i, skip_frames))
-
 			image = frame.to_rgb().to_ndarray()
 
 			#Preprocess data
@@ -106,7 +103,7 @@ class VideoHandlerElem(PipelineElement):
 		self._max_frames = 0
 		self._preprocessors = preprocessors
 
-	def run(self, data, input_path, max_frames = 0):
+	def run(self, data, input_path, benchmark = False, max_frames = 0):
 		self.input_path = input_path
 		self._max_frames = max_frames
 

@@ -85,8 +85,6 @@ class FaceRecognizerKernel(Kernel):
 		print('Number of classes: %d' % len(dataset))
 		print('Number of images: %d' % len(paths))
 
-
-
 		print("Calculating embeddings for new data")
 		data_emb = self.process_faces(paths, data_from_pipeline=False, batch_size = batch_size )
 		data_emb = np.float32(data_emb)
@@ -112,7 +110,7 @@ class FaceRecognizerKernel(Kernel):
 				pickle.dump((data_emb, class_names, labels), outfile)
 		print('\nSaved classifier model to file "%s"' % model_name)
 
-	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10):
+	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10, face_tracking = True):
 		print("Recognizing the faces")
 		self.load_model()
 
@@ -132,7 +130,7 @@ class FaceRecognizerKernel(Kernel):
 		print('Loaded classifier model from file "%s"' % self._classifier)
 
 		faces_names = []
-		frames_embs = []
+		faces_embs = []
 
 		frames_generator = frames_reader.get_frames()
 
@@ -145,6 +143,7 @@ class FaceRecognizerKernel(Kernel):
 			boxes = frames_face_boxes[i]
 
 			frame_names = []
+			frame_embs = []
 
 			if len(boxes):
 				faces = utils.extract_boxes(frames_data, boxes)
@@ -165,12 +164,60 @@ class FaceRecognizerKernel(Kernel):
 						person_name = class_names[label]
 						confidence = np.sum(classes == label) / n_ngbr
 
-						if confidence <= 0.2:
+						if confidence <= 0.5:
 							person_name = "Unknown"
 
 						frame_names.append((person_name, confidence))
+						frame_embs.append(emb_array[f])
 			bar.next()
 			faces_names.append(frame_names)
+			faces_embs.append(frame_embs)
+
+		# Detect persons
+		if face_tracking:
+			persons = [[(0, i)] for i in range(len(frames_face_boxes[0]))]
+			persons_frames = [[i, face_box, False] for i, face_box in enumerate(frames_face_boxes[0])]
+
+			for i, face_boxes in enumerate(frames_face_boxes):
+				if i == 0:
+					continue
+
+				for b, box in enumerate(face_boxes):
+					found = False
+					for p, person_f in enumerate(persons_frames):
+						if utils.IoU(person_f[1], box) > utils.IOU_THRESHOLD:
+							persons[person_f[0]].append((i, b))
+							persons_frames[p][1] = box
+							persons_frames[p][2] = True
+							found = True
+							break
+
+					if not found:
+						persons.append([(i, b)])
+						persons_frames.append([len(persons) - 1, box, True])
+
+				for p, person_f in enumerate(persons_frames):
+					if person_f[2]:
+						persons_frames[p][2] = False
+					else:
+						del persons_frames[p]
+
+			persons_names = []
+			for person in persons:
+				p_names = []
+
+				for p_frames in person:
+					frame_num = p_frames[0]
+					face_num = p_frames[1]
+					p_names.append(faces_names[frame_num][face_num][0])
+
+				# Get person by majority voting. Confidence here is number of most common name/all names
+				most_common_p = Counter(p_names).most_common()[0]
+				most_common_p = (most_common_p[0], most_common_p[1]/len(p_names))
+
+				# Adjust according to detected persons
+				for p_frames in person:
+					faces_names[p_frames[0]][p_frames[1]] = most_common_p
 
 		if benchmark:
 			end = time.time()
