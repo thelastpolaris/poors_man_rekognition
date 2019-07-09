@@ -27,9 +27,12 @@ class PipelineElement(ABC):
 	def run(self, **args):
 		pass
 
-	def benchmark(self, **args):
+	@abstractmethod
+	def requires(self):
 		pass
 
+	def benchmark(self, **args):
+		pass
 
 	def __str__(self):
 		if self.__kernel:

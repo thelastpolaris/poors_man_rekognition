@@ -1,6 +1,6 @@
 from ..pipeline_element import PipelineElement
 from ...utils.utils import boxes_from_cvat_xml, calculate_tp_fp_fn
-from sklearn.metrics import precision_recall_curve
+from ..input_handlers.video_handler import VideoHandlerElem
 
 class FaceDetectorElem(PipelineElement):
 	def __init__(self, kernel):
@@ -14,6 +14,9 @@ class FaceDetectorElem(PipelineElement):
 
 		if benchmark:
 			self.benchmark(data, benchmark_data, benchmark_boxes)
+
+	def requires(self):
+		return VideoHandlerElem
 
 	def benchmark(self, data, benchmark_data, benchmark_boxes):
 		for k, v in benchmark_data.items():

@@ -62,9 +62,23 @@ class Pipeline:
 		for elem in elements:
 			self.add_elements(elem)
 
+	class WrongPipelineOrder(Exception):
+		"""Raised when pipeline doesn't contain an element required by a new PipelineElement"""
+		pass
+
 	def add_elements(self, element):
 		# Check for whether we can put elements in a pipeline
+		required_elems = element.requires()
+		if required_elems:
+			if required_elems is not list:
+				required_elems = [required_elems]
+
+			for req_elem in required_elems:
+				if not any([type(elem) == req_elem for elem in self.__elements]):
+					raise self.WrongPipelineOrder
+
 		self.__elements.append(element)
+
 		element.parent_pipeline = self
 
 	def run(self, params_dict, benchmark = False):

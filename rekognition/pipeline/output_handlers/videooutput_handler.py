@@ -3,8 +3,7 @@ from ...utils import visualization_utils_color as vis_util
 from ...utils import utils
 from progress.bar import Bar
 import av, os
-from PIL import Image
-import cv2
+from ..input_handlers.video_handler import VideoHandlerElem
 
 class VideoOutputHandler(OutputHandler):
 	def run(self, data, benchmark, output_name):
@@ -84,3 +83,6 @@ class VideoOutputHandler(OutputHandler):
 		
 		container.close()
 		bar.finish()
+
+	def requires(self):
+		return VideoHandlerElem

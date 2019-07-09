@@ -1,4 +1,5 @@
 from ..pipeline_element import PipelineElement
+from ..input_handlers.video_handler import VideoHandlerElem
 
 class SimilarFramesFinder(PipelineElement):
 	def __init__(self, kernel):
@@ -29,6 +30,9 @@ class SimilarFramesFinder(PipelineElement):
 
 		if benchmark:
 			self.benchmark(data, benchmark_data)
+
+	def requires(self):
+		return VideoHandlerElem
 
 	def benchmark(self, data, benchmark_data):
 		for k, v in benchmark_data.items():

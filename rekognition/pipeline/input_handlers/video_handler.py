@@ -121,6 +121,9 @@ class VideoHandlerElem(PipelineElement):
 	def max_frames(self, max_frames):
 		self._max_frames = max_frames
 
+	def requires(self):
+		return None
+
 	def __str__(self):
 		output = ""
 
