@@ -31,6 +31,9 @@ class PipelineElement(ABC):
 	def requires(self):
 		pass
 
+	def get_JSON(self, data, json_objects):
+		return json_objects
+
 	def benchmark(self, **args):
 		pass
 

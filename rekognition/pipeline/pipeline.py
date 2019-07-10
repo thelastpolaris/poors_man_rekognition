@@ -1,6 +1,8 @@
 import time
 import collections
 from rekognition.pipeline.pipeline_element import PipelineElement
+import os
+import json
 
 class Data:
 	def __init__(self):
@@ -27,6 +29,8 @@ class Data:
 			return self.__values[value_name]
 		else:
 			return None
+
+		return input_data
 
 	@property
 	def benchmark(self):
@@ -81,7 +85,7 @@ class Pipeline:
 
 		element.parent_pipeline = self
 
-	def run(self, params_dict, benchmark = False):
+	def run(self, params_dict, benchmark = False, save_JSON = True):
 		assert (len(self.__elements)), "Pipeline needs to have at least one PipelineElement"
 
 		start = time.time()
@@ -97,6 +101,9 @@ class Pipeline:
 		end = time.time()
 		print("Done! Total time elapsed {:.2f} seconds".format(end - start))
 
+		if save_JSON:
+			self.save_JSON(params_dict)
+
 		if benchmark:
 			print(self.__data_holder.benchmark)
 
@@ -105,6 +112,17 @@ class Pipeline:
 					self.__data_holder.benchmark.save_benchmark(params_dict[self]["out_name"])
 
 		return True
+
+	def save_JSON(self, params_dict):
+		json_objects = []
+
+		for elem in self.__elements:
+			json_objects = elem.get_JSON(self.__data_holder, json_objects)
+
+		filename = "{}.{}".format(params_dict[self]["out_name"], "json")
+
+		with open(filename, "w") as write_file:
+			json.dump(json_objects, write_file, indent=4)
 
 	def __str__(self):
 		output = ""

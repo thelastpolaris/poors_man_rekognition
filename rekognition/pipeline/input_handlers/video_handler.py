@@ -124,6 +124,18 @@ class VideoHandlerElem(PipelineElement):
 	def requires(self):
 		return None
 
+	def get_JSON(self, data, json_objects):
+		json_objects = [] # reset list with JSON values
+		frames_pts = data.get_value("frames_pts")
+
+		if frames_pts:
+			for pts in frames_pts:
+				frame = dict()
+				frame["pts"] = pts
+				json_objects.append(frame)
+
+		return json_objects
+
 	def __str__(self):
 		output = ""
 

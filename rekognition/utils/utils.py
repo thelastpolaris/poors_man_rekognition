@@ -154,3 +154,14 @@ def calculate_tp_fp_fn(frame_boxes, bench_boxes, bench_w, bench_h, frame_labels 
 		return recognition_TP, recognition_FP
 	else:
 		return detection_TP, detection_FP, detection_FN
+
+def traverse_group(frames_group):
+	all_count = 0
+	for i, frame_gr in enumerate(frames_group):
+		group = 1
+		if frame_gr:
+			group = frame_gr
+
+		for a in range(group):
+			yield(i, all_count)
+			all_count += 1
