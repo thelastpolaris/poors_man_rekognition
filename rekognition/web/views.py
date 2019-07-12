@@ -59,7 +59,8 @@ class AuthCreateHandler(SessionMixin, RequestHandler):
 
     async def post(self):
         login = self.get_argument("login")
-        password = self.get_argument("password").encode("utf-8")
+        password = str(self.get_argument("password").encode("utf-8"))
+        print(password)
         
         salt = bcrypt.gensalt()
         password_hashed = bcrypt.hashpw(password, salt)
@@ -135,13 +136,6 @@ class TaskHandler(SessionMixin, RequestHandler):
                 fileinfo = self.request.files[mode][0]
                 fname = fileinfo['filename']
                 fname = fname.replace(" ", "")
-                print(fname)
-                print(fname)
-                print(fname)
-                print(fname)
-                print(fname)
-                print(fname)
-                print(fname)
 
                 folder = __UPLOADS__
 

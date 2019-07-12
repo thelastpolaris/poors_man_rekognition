@@ -11,7 +11,6 @@ from ..pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
 from ..pipeline.recognizers.facenet_recognizer import FacenetRecognizer
 
 # Output
-from ..pipeline.output_handlers.json_handler import JSONHandler
 from ..pipeline.output_handlers.videooutput_handler import VideoOutputHandler
 from ..pipeline.output_handlers.imageoutput_handler import ImageOutputHandler
 
@@ -31,25 +30,22 @@ def createPipeline(input_path, isImage = False, useYolo = False, max_frames = No
 		datahandler = VideoHandlerElem()
 	datahandler.max_frames = max_frames
 	# Face Detector
-	if useYolo:
-		face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
-	else:
-		face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
-	
-	# Face Recognizer
-	face_recognizer = FacenetRecognizer(parentDir + "/model/facenet_20180408.pb", parentDir + "/model/facenet_classifier.pkl")
-	
-	# Output Handler
-	jsonhandler = JSONHandler()
-	if isImage:
-		output_hand = ImageOutputHandler()
-	else:
-		output_hand = VideoOutputHandler()
-
-	# Construct the pipeline
-	p.add_element(datahandler, input_path)
-	p.add_element(face_detector, datahandler)
-	p.add_element(face_recognizer, face_detector)
-	p.add_element(jsonhandler, face_recognizer)
-	p.add_element(output_hand, jsonhandler)
-	return p
+	# if useYolo:
+	# 	face_detector = YOLOv3FaceDetector(min_score_thresh=.5)
+	# else:
+	# 	face_detector = MobileNetsSSDFaceDetector(min_score_thresh=.5)
+	#
+	# # Face Recognizer
+	# face_recognizer = FacenetRecognizer(parentDir + "/model/facenet_20180408.pb", parentDir + "/model/facenet_classifier.pkl")
+	#
+	# # Output Handler
+	# if isImage:
+	# 	output_hand = ImageOutputHandler()
+	# else:
+	# 	output_hand = VideoOutputHandler()
+	#
+	# # Construct the pipeline
+	# p.add_element(datahandler, input_path)
+	# p.add_element(face_detector, datahandler)
+	# p.add_element(face_recognizer, face_detector)
+	# return p

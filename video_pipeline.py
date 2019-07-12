@@ -74,7 +74,7 @@ benchmark_boxes = fileDir + "test/videos/benchmark_boxes/" + filename_wo_ext + '
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100, "preprocessors": [resizer]},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0, "preprocessors": [resizer]},
               simframes: {"sim_threshold": 0.99, "max_jobs": 10},
               face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
               face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes},

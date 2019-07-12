@@ -121,7 +121,7 @@ class FaceRecognizerKernel(Kernel):
 		if backend is "SciKit":
 			infile = open(self._classifier, 'rb')
 			(model_emb, class_names, labels) = pickle.load(infile)
-			nbrs = NearestNeighbors(n_neighbors=n_ngbr, algorithm='ball_tree').fit(model_emb)
+			nbrs = NearestNeighbors(n_neighbors=n_ngbr, algorithm='auto', metric='cosine').fit(model_emb)
 		else: # FAISS is default
 			infile = open(self._classifier + ".names", 'rb')
 			(class_names, labels) = pickle.load(infile)
@@ -156,16 +156,29 @@ class FaceRecognizerKernel(Kernel):
 					else:
 						distances, indices = index.search(emb_array, n_ngbr)
 
+					distance_threshold = 0.5
+
 					for f in range(len(faces)):
-						inds = indices[f]
-						classes = np.array([labels[i] for i in inds])
+						classes = []
+
+						# Update names according to distance threshold
+						for count, index in enumerate(indices[f]):
+							l = labels[index]
+							if distances[f][count] > distance_threshold:
+								l = -1
+
+							classes.append(l)
+
+						classes = np.array(classes)
+
 						label = Counter(classes).most_common(1)[0][0]
 
-						person_name = class_names[label]
-						confidence = np.sum(classes == label) / n_ngbr
-
-						if confidence <= 0.5:
+						if label != -1:
+							person_name = class_names[label]
+						else:
 							person_name = "Unknown"
+
+						confidence = np.sum(classes == label) / n_ngbr
 
 						frame_names.append((person_name, confidence))
 						frame_embs.append(emb_array[f])
