@@ -1,5 +1,4 @@
 from .output_handler import OutputHandler
-from ...utils import visualization_utils_color as vis_util
 from ...utils import utils
 from progress.bar import Bar
 import av, os
@@ -23,12 +22,14 @@ class VideoOutputHandler(OutputHandler):
 		frames_generator = frames_reader.get_frames(group_frames=False)
 		frames_group = frames_reader.frames_group
 
-		enum_frames = enumerate(frames_generator)
+		frames_face_boxes = data.get_value("frames_face_boxes")
+		frames_face_names = data.get_value("frames_face_names")
+
 		if frames_group:
 			group_i = 0
 			group = frames_group[group_i] + 1
 
-		for i, (frames_data, frames_pts) in enum_frames:
+		for i, (frames_data, frames_pts) in enumerate(frames_generator):
 			image = frames_data
 			counter = i
 
@@ -49,27 +50,10 @@ class VideoOutputHandler(OutputHandler):
 					group += new_group
 					counter = group_i
 
-			frames_face_boxes = data.get_value("frames_face_boxes")
-			if frames_face_boxes:
-				frame_boxes = frames_face_boxes[counter]
+				face_boxes = frames_face_boxes[counter] if frames_face_names else None
+				names = frames_face_names[counter] if frames_face_names else None
 
-				if len(frame_boxes):
-					for f in range(len(frame_boxes)):
-						ymin, xmin, ymax, xmax = frame_boxes[f]
-
-						frames_face_names = data.get_value("frames_face_names")
-						if frames_face_names:
-							name = frames_face_names[counter][f][0]
-						else:
-							name = ""
-
-						vis_util.draw_bounding_box_on_image_array(image,
-														 ymin,
-														 xmin,
-														 ymax,
-														 xmax,
-														 display_str_list=[name],
-														 use_normalized_coordinates = utils.is_normalized(frame_boxes[0]))
+				image = utils.draw_faces(image, face_boxes, names)
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

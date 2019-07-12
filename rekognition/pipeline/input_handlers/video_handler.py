@@ -1,8 +1,8 @@
-import av
 from ..pipeline_element import PipelineElement
+import av
 
 class VideoFrames:
-	def __init__(self, container, stream, preprocessors = [], max_frames = 0, input_path = ""):
+	def __init__(self, container, stream, preprocessors = None, max_frames = 0, input_path = ""):
 		self._container = container
 		self._counter = 0
 		self._stream = stream
@@ -10,6 +10,8 @@ class VideoFrames:
 		self._preprocessors = preprocessors
 		self.input_path = input_path
 		self._frames_group = None
+		self.content_type = "video"
+
 
 	def frames_num(self, group_frames = True):
 		if group_frames and self.frames_group:
@@ -97,13 +99,11 @@ class VideoFrames:
 		return None, None
 
 class VideoHandlerElem(PipelineElement):
-	def __init__(self, preprocessors = []):
+	def __init__(self):
 		super().__init__()
 		self.input_path = None
-		self._max_frames = 0
-		self._preprocessors = preprocessors
 
-	def run(self, data, input_path, benchmark = False, max_frames = 0):
+	def run(self, data, input_path, benchmark = False, max_frames = 0, preprocessors = None):
 		self.input_path = input_path
 		self._max_frames = max_frames
 
@@ -111,15 +111,7 @@ class VideoHandlerElem(PipelineElement):
 		# Get video stream
 		stream = container.streams.video[0]
 
-		data.add_value("frames_reader", VideoFrames(container, stream, self._preprocessors, self._max_frames, self.input_path))
-
-	@property
-	def max_frames(self):
-		return self._max_frames
-
-	@max_frames.setter
-	def max_frames(self, max_frames):
-		self._max_frames = max_frames
+		data.add_value("frames_reader", VideoFrames(container, stream, preprocessors, self._max_frames, self.input_path))
 
 	def requires(self):
 		return None
@@ -135,18 +127,3 @@ class VideoHandlerElem(PipelineElement):
 				json_objects.append(frame)
 
 		return json_objects
-
-	def __str__(self):
-		output = ""
-
-		# Print preprocessors
-		elems_len = len(self._preprocessors)
-
-		for i in range(elems_len):
-			elem = self._preprocessors[i]
-			output += str(elem.__class__.__name__)
-
-			if i != elems_len - 1:
-				output += ", "
-
-		return str(self.__class__.__name__) + "({})".format(output)

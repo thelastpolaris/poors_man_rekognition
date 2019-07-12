@@ -1,5 +1,6 @@
 import numpy as np
 import xmltodict
+from . import visualization_utils_color as vis_util
 
 IOU_THRESHOLD = 0.5
 
@@ -155,7 +156,13 @@ def calculate_tp_fp_fn(frame_boxes, bench_boxes, bench_w, bench_h, frame_labels 
 	else:
 		return detection_TP, detection_FP, detection_FN
 
-def traverse_group(frames_group):
+def traverse_group(default_len, frames_group):
+	if not frames_group:
+		for i in range(default_len):
+			yield i, i
+
+		return None, None
+
 	all_count = 0
 	for i, frame_gr in enumerate(frames_group):
 		group = 1
@@ -165,3 +172,24 @@ def traverse_group(frames_group):
 		for a in range(group):
 			yield(i, all_count)
 			all_count += 1
+
+def draw_faces(image, face_boxes, face_names):
+	if face_boxes:
+		for f in range(len(face_boxes)):
+			ymin, xmin, ymax, xmax = face_boxes[f]
+
+			if face_names:
+				name = face_names[f][0]
+			else:
+				name = ""
+
+			vis_util.draw_bounding_box_on_image_array(image,
+													  ymin,
+													  xmin,
+													  ymax,
+													  xmax,
+													  display_str_list=[name],
+													  use_normalized_coordinates=is_normalized(
+														  face_boxes[0]))
+
+	return image

@@ -24,6 +24,7 @@ class SimilarFramesFinder(PipelineElement):
 		if sim_count:
 			frames_group.append(sim_count)
 
+		data.add_value("frames_group", frames_group)
 		frames_reader.frames_group = frames_group
 
 		benchmark_data["Group Frames"] = len(frames_group)

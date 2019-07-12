@@ -6,7 +6,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 from rekognition.pipeline.pipeline import Pipeline
 # Data Handlers
 from rekognition.pipeline.input_handlers.preprocessors import ResizeImage, InvertColors, Lambda
-from rekognition.pipeline.input_handlers.video_handler import VideoHandlerElem
+from rekognition.pipeline.input_handlers.image_handler import ImageHandlerElem
 
 # Computer Vision
 from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFramesFinder
@@ -25,7 +25,7 @@ from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognize
 from rekognition.pipeline.recognizers.arcface_recognizer import ArcFaceRecognizer
 
 # Output
-from rekognition.pipeline.output_handlers.videooutput_handler import VideoOutputHandler
+from rekognition.pipeline.output_handlers.imageoutput_handler import ImageOutputHandler
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(absFilePath) + "/"
@@ -37,18 +37,14 @@ ap.add_argument("-i", "--input", required=True, help="Either video or image")
 args = vars(ap.parse_args())
 
 input_path = args["input"]
-filename = os.path.basename(input_path)
-filename_wo_ext = os.path.splitext(filename)[0]
+folder_name = os.path.basename(input_path)
+print(folder_name)
 
 resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
 
-datahandler = VideoHandlerElem()
-
-# Group similar frames
-simframes = SimilarFramesFinder(CompHist())
-# simframes = SimilarFramesFinder(SSIM())
+datahandler = ImageHandlerElem()
 
 # Face Detectors
 # face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
@@ -58,10 +54,9 @@ face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 
 # face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit_aug.pkl"))
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit_aug.pkl"))
-output_hand = VideoOutputHandler()
+output_hand = ImageOutputHandler()
 
 pipeline = Pipeline([datahandler,
-                     simframes,
                      face_detector,
                      face_recognizer,
                      output_hand
@@ -70,13 +65,10 @@ pipeline = Pipeline([datahandler,
 print(pipeline)
 
 # Benchmarks stuff
-benchmark_boxes = fileDir + "test/videos/benchmark_boxes/" + filename_wo_ext + '.xml'
-# benchmark_boxes = None
-out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
+out_name = "{}_{}_{}".format(folder_name, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100, "preprocessors": [resizer]},
-              simframes: {"sim_threshold": 0.99, "max_jobs": 10},
-              face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
-              face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes},
+pipeline.run({datahandler: {"input_path" : input_path},
+              face_detector: {"min_score": 0.6},
+              face_recognizer: {"backend":"SciKit", "n_ngbr": 10},
               output_hand: {"output_name": out_name},
               pipeline: {"out_name": "output/" + out_name}}, benchmark=True)

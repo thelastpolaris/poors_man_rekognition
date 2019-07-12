@@ -174,7 +174,7 @@ class FaceRecognizerKernel(Kernel):
 			faces_embs.append(frame_embs)
 
 		# Detect persons
-		if face_tracking:
+		if face_tracking and frames_reader.content_type == "video":
 			persons = [[(0, i)] for i in range(len(frames_face_boxes[0]))]
 			persons_frames = [[i, face_box, False] for i, face_box in enumerate(frames_face_boxes[0])]
 
@@ -202,7 +202,6 @@ class FaceRecognizerKernel(Kernel):
 					else:
 						del persons_frames[p]
 
-			persons_names = []
 			for person in persons:
 				p_names = []
 

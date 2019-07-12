@@ -1,6 +1,7 @@
 from ..pipeline_element import PipelineElement
 from ...utils.utils import boxes_from_cvat_xml, calculate_tp_fp_fn, traverse_group
 from ..input_handlers.video_handler import VideoHandlerElem
+from ..input_handlers.image_handler import ImageHandlerElem
 
 class FaceDetectorElem(PipelineElement):
 	def __init__(self, kernel):
@@ -16,13 +17,13 @@ class FaceDetectorElem(PipelineElement):
 			self.benchmark(data, benchmark_data, benchmark_boxes)
 
 	def requires(self):
-		return VideoHandlerElem
+		return VideoHandlerElem, ImageHandlerElem
 
 	def get_JSON(self, data, json_objects):
-		frames_group = data.get_value("frames_reader").frames_group
+		frames_group = data.get_value("frames_group")
 		frames_face_boxes = data.get_value("frames_face_boxes")
 
-		for (i, all_count) in traverse_group(frames_group):
+		for (i, all_count) in traverse_group(len(frames_face_boxes), frames_group):
 			faces = []
 
 			for bb in frames_face_boxes[i]:

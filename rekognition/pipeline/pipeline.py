@@ -1,62 +1,6 @@
+from .data import Data
 import time
-import collections
-from rekognition.pipeline.pipeline_element import PipelineElement
-import os
 import json
-
-class Data:
-	def __init__(self):
-		self.__values = collections.OrderedDict()
-		self.__benchmark = self.Benchmark()
-
-	def add_value(self, value_name, value):
-		if value_name in self.__values.keys():
-			print("{} exists. New value won't be added. Use update_value()".format(value_name))
-			return False
-		else:
-			self.__values[value_name] = value
-			return True
-
-	def update_value(self, value_name, new_value):
-		if value_name in self.__values.keys():
-			self.__values[value_name] = new_value
-			return True
-		else:
-			return False
-
-	def get_value(self, value_name):
-		if value_name in self.__values.keys():
-			return self.__values[value_name]
-		else:
-			return None
-
-		return input_data
-
-	@property
-	def benchmark(self):
-		return self.__benchmark
-
-	class Benchmark:
-		def __init__(self):
-			self.__elem_values = collections.OrderedDict()
-
-		def add_value(self, element: PipelineElement, value_name: str, value):
-			if element not in self.__elem_values.keys():
-				self.__elem_values[element] = {}
-
-			self.__elem_values[element][value_name] = value
-
-		def __str__(self):
-			benchmark_out = ""
-			for k, v in self.__elem_values.items():
-				newline = "\n" if benchmark_out else ""
-				benchmark_out = "{}{} {} {}".format(benchmark_out, newline, k, v)
-
-			return benchmark_out
-
-		def save_benchmark(self, path_to_file):
-			with open(path_to_file + ".txt", 'w') as data:
-				data.write(self.__str__())
 
 class Pipeline:
 	def __init__(self, elements):
@@ -71,15 +15,24 @@ class Pipeline:
 		pass
 
 	def add_elements(self, element):
-		# Check for whether we can put elements in a pipeline
+		# Check for whether we can put element in a pipeline
 		required_elems = element.requires()
-		if required_elems:
-			if required_elems is not list:
-				required_elems = [required_elems]
 
-			for req_elem in required_elems:
-				if not any([type(elem) == req_elem for elem in self.__elements]):
-					raise self.WrongPipelineOrder
+		if required_elems:
+			found = False
+
+			f = lambda test_elem: any([type(elem) == test_elem for elem in self.__elements])
+
+			if type(required_elems) != tuple:
+				found = f(required_elems) # handle single elements
+			else:
+				for req_elem in required_elems:
+					found = f(req_elem)
+					if found:
+						break
+
+			if not found:
+				raise self.WrongPipelineOrder(element)
 
 		self.__elements.append(element)
 

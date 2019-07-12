@@ -1,37 +1,44 @@
 from .output_handler import OutputHandler
-from ...utils import visualization_utils_color as vis_util
+from ..input_handlers.image_handler import ImageHandlerElem
+from ...utils import utils
 from progress.bar import Bar
 import cv2, os
 
 class ImageOutputHandler(OutputHandler):
-	def run(self, input_data):
-		files_dir = self.parent_pipeline.filename
-		
+	def run(self, data, benchmark, output_name):
+
+		if not os.path.exists("output"):
+			os.mkdir("output")
+
+		frames_reader = data.get_value("frames_reader")
+		frames_generator = frames_reader.get_frames()
+
 		print("Saving processed images")
-		bar = Bar('Processing', max = len(input_data))
-		
-		new_files_dir = "output/" + files_dir + "_output/"
+		bar = Bar('Processing', max = frames_reader.frames_num())
+
+		new_files_dir = os.path.join("output", output_name)
+		print(new_files_dir)
 		
 		if not os.path.exists(new_files_dir):
 			os.mkdir(new_files_dir)
 
-		for data in input_data:
-			image = data.image_data
-			out_filename = os.path.splitext(data.filename)[0] + "_output.jpg"
+		frames_face_boxes = data.get_value("frames_face_boxes")
+		frames_face_names = data.get_value("frames_face_names")
 
-			for face in data.faces:
-				ymin, xmin, ymax, xmax = face.bounding_box
-				name = face.person.predicted_name
-				
-				vis_util.draw_bounding_box_on_image_array(image,
-												 ymin,
-												 xmin,
-												 ymax,
-												 xmax,
-												 display_str_list=[name])
+		for i, (image_data, image_name) in enumerate(frames_generator):
 
-			cv2.imwrite(new_files_dir + out_filename, image)
+			out_filename = os.path.splitext(image_name)[0] + "_output.jpg"
+
+			face_boxes = frames_face_boxes[i] if frames_face_names else None
+			names = frames_face_names[i] if frames_face_names else None
+
+			image = utils.draw_faces(image_data, face_boxes, names)
+			image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+			cv2.imwrite(os.path.join(new_files_dir, out_filename), image)
 			bar.next()
 
 		bar.finish()
-		return input_data
+
+	def requires(self):
+		return ImageHandlerElem
