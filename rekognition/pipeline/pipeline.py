@@ -3,7 +3,7 @@ import time
 import json
 
 class Pipeline:
-	def __init__(self, elements):
+	def __init__(self, elements) -> object:
 		self.__elements = []
 		self.__data_holder = None
 

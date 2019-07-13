@@ -1,10 +1,10 @@
 import tornado.ioloop
 import tornado.web
-from rekognition.web.views import DashboardHandler, TaskHandler, AuthCreateHandler, AuthLoginHandler
+from rekognition.web.views.auth import AuthCreateHandler, AuthLoginHandler, GoogleOAuth2LoginHandler
+from rekognition.web.views.dashboard import DashboardHandler, TaskHandler
 from tornado_sqlalchemy import make_session_factory
 from tornado.web import StaticFileHandler
 import os
-import numpy as np
 
 factory = make_session_factory("mysql://ccextractor:redwood32@localhost:3306/rekognition")
 
@@ -17,18 +17,30 @@ def make_app():
 		(r"/", DashboardHandler),
 		(r"/login", AuthLoginHandler),
 		(r"/register", AuthCreateHandler),
+		(r"/login_google", GoogleOAuth2LoginHandler),
 		(r"/addtask", TaskHandler),
 		(r"/output/(.*)", StaticFileHandler, {'path':"output/"})
 	]
-	app = tornado.web.Application(urls,
-		template_path=os.path.join(fileDir, "rekognition/web/templates"),
-		static_path=os.path.join(fileDir, "rekognition/web/assets"),
-		session_factory=factory,
-		cookie_secret="random")
+	settings = {
+		'template_path': os.path.join(fileDir, "rekognition/web/templates"),
+		'static_path': os.path.join(fileDir, "rekognition/web/assets"),
+		'cookie_secret': 'random',
+		'session_factory': factory,
+		'xsrf_cookies': True,
+		'debug': True,
+		'google_oauth': {
+			'key': '991349478996-ni17000tlphjl0prapab15hmttml86gm.apps.googleusercontent.com',
+			'secret': 'sRSItAII81TnRH63TpsIIwCc',
+			'redirect_uri': 'http://f7d526a2.ngrok.io/login_google',
+			'scope': ['openid', 'email', 'profile']
+		},
+		'login_url': "/login"
+	}
+	app = tornado.web.Application(urls, **settings)
 
 	return app
 
 if __name__ == "__main__":
 	app = make_app()
-	app.listen(8000)
+	app.listen(8888)
 	tornado.ioloop.IOLoop.current().start()

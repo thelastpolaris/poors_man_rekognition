@@ -14,12 +14,13 @@
             </div>
             <div class="card-body px-lg-5 py-lg-5">
               <form role="form" action="/register" method="POST">
+                {% raw xsrf_form_html() %}
                 <div class="form-group">
                   <div class="input-group input-group-alternative mb-3">
                     <div class="input-group-prepend">
                       <span class="input-group-text"><i class="ni ni-circle-08"></i></span>
                     </div>
-                    <input class="form-control" placeholder="Login" type="login" name="login">
+                    <input class="form-control" placeholder="Login" type="login" name="login" required>
                   </div>
                 </div>
                 <div class="form-group">
@@ -27,11 +28,11 @@
                     <div class="input-group-prepend">
                       <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
                     </div>
-                    <input class="form-control" placeholder="Password" type="password" name="password">
+                    <input class="form-control" placeholder="Password" type="password" name="password" required>
                   </div>
                 </div>
                 <div class="text-center">
-                  <button type="submit" class="btn btn-primary mt-4">Create account</button>
+                  <button type="submit" class="btn btn-success mt-4">Create Account</button>
                 </div>
               </form>
             </div>

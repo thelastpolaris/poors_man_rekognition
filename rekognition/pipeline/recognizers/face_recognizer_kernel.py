@@ -110,7 +110,8 @@ class FaceRecognizerKernel(Kernel):
 				pickle.dump((data_emb, class_names, labels), outfile)
 		print('\nSaved classifier model to file "%s"' % model_name)
 
-	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10, face_tracking = True):
+	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10,
+				face_tracking = True, distance_threshold = 0.5):
 		print("Recognizing the faces")
 		self.load_model()
 
@@ -155,8 +156,6 @@ class FaceRecognizerKernel(Kernel):
 						distances, indices = nbrs.kneighbors(emb_array)
 					else:
 						distances, indices = index.search(emb_array, n_ngbr)
-
-					distance_threshold = 0.5
 
 					for f in range(len(faces)):
 						classes = []

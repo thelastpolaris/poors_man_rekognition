@@ -8,8 +8,9 @@ class User(DeclarativeBase):
     id = Column(BigInteger, primary_key=True)
     login = Column(String(255), unique=True)
     password = Column(String(255), unique=False)
+    picture = Column(String(1024))
 
-    def __init__(self, login, password):
+    def __init__(self, login, password, picture=None):
         self.login = login
         self.password = password
 
