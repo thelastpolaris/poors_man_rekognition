@@ -1,6 +1,6 @@
 import tornado.ioloop
 import tornado.web
-from rekognition.web.views.auth import AuthCreateHandler, AuthLoginHandler, GoogleOAuth2LoginHandler
+from rekognition.web.views.auth import AuthCreateHandler, AuthLoginHandler, GoogleOAuth2LoginHandler, GithubLoginHandler
 from rekognition.web.views.dashboard import DashboardHandler, TaskHandler
 from tornado_sqlalchemy import make_session_factory
 from tornado.web import StaticFileHandler
@@ -18,6 +18,7 @@ def make_app():
 		(r"/login", AuthLoginHandler),
 		(r"/register", AuthCreateHandler),
 		(r"/login_google", GoogleOAuth2LoginHandler),
+		(r"/login_github", GithubLoginHandler),
 		(r"/addtask", TaskHandler),
 		(r"/output/(.*)", StaticFileHandler, {'path':"output/"})
 	]
@@ -29,9 +30,15 @@ def make_app():
 		'xsrf_cookies': True,
 		'debug': True,
 		'google_oauth': {
-			'key': '991349478996-ni17000tlphjl0prapab15hmttml86gm.apps.googleusercontent.com',
-			'secret': 'sRSItAII81TnRH63TpsIIwCc',
+			'key': os.environ["GOOGLE_KEY"],
+			'secret': os.environ["GOOGLE_SECRET"],
 			'redirect_uri': 'http://f7d526a2.ngrok.io/login_google',
+			'scope': ['openid', 'email', 'profile']
+		},
+		'github_oauth': {
+			'key': os.environ["GITHUB_KEY"],
+			'secret': os.environ["GITHUB_SECRET"],
+			'redirect_uri': 'http://f7d526a2.ngrok.io/login_github',
 			'scope': ['openid', 'email', 'profile']
 		},
 		'login_url': "/login"

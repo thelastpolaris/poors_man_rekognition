@@ -13,6 +13,11 @@
               </div>
             </div>
             <div class="card-body px-lg-5 py-lg-5">
+              {% if error != None %}
+                <div class="alert alert-danger" role="alert">
+                  <strong>Error -</strong> {{ error }}!
+                </div>
+              {% end %}
               <form role="form" action="/register" method="POST">
                 {% raw xsrf_form_html() %}
                 <div class="form-group">

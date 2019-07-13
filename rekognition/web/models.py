@@ -9,10 +9,13 @@ class User(DeclarativeBase):
     login = Column(String(255), unique=True)
     password = Column(String(255), unique=False)
     picture = Column(String(1024))
+    type = Column(String(128))
 
-    def __init__(self, login, password, picture=None):
+    def __init__(self, login, password, type, picture=None):
         self.login = login
         self.password = password
+        self.picture = picture
+        self.type = type
 
 class File(DeclarativeBase):
     __tablename__ = 'files'
