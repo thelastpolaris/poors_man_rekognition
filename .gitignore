@@ -20,3 +20,4 @@
 *.params
 # Allow
 !/resources/static/*.png
+*.hdf5

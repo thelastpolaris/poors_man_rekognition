@@ -110,6 +110,5 @@ class FaceDetectorElem(PipelineElement):
 				precision = 0 if (TP+FP) == 0 else TP/(TP + FP)
 				recall = 0 if (TP + FN) == 0 else TP/(TP + FN)
 
-				# data.benchmark.add_value(self, "Accuracy", accuracy)
 				data.benchmark.add_value(self, "Precision", precision)
 				data.benchmark.add_value(self, "Recall", recall)

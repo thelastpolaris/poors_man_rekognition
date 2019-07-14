@@ -25,13 +25,18 @@ class VideoOutputHandler(OutputHandler):
 		frames_face_boxes = data.get_value("frames_face_boxes")
 		frames_face_names = data.get_value("frames_face_names")
 
+		# Age and Gender
+		frames_face_age = data.get_value("frames_face_age")
+		frames_faces_gender = data.get_value("frames_faces_gender")
+
+		print(len(frames_face_age))
+
 		if frames_group:
 			group_i = 0
 			group = frames_group[group_i] + 1
 
 		for i, (frames_data, frames_pts) in enumerate(frames_generator):
 			image = frames_data
-			counter = i
 
 			if stream is None:
 				[h, w] = image.shape[:2]
@@ -50,10 +55,22 @@ class VideoOutputHandler(OutputHandler):
 					group += new_group
 					counter = group_i
 
-				face_boxes = frames_face_boxes[counter] if frames_face_names else None
-				names = frames_face_names[counter] if frames_face_names else None
+				face_boxes = frames_face_boxes[counter] if frames_face_boxes else None
+				names = None
+				if frames_face_names:
+					names = [name[0] for name in frames_face_names[counter]]
 
-				image = utils.draw_faces(image, face_boxes, names)
+				final_string = names if names else [""] * len(face_boxes)
+
+				if frames_face_age:
+					for a, name in enumerate(final_string):
+						age = str(frames_face_age[counter][a])
+						gender = frames_faces_gender[counter][a]
+
+						final_string[a] = final_string[a] + " {}, {}".format(age, gender)
+				# print(final_string)
+
+				image = utils.draw_faces(image, face_boxes, final_string)
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

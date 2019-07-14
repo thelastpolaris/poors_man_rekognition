@@ -11,7 +11,7 @@
 from .face_recognizer_kernel import FaceRecognizerKernel
 import tensorflow as tf
 import facenet.src.facenet as facenet
-import os, math, cv2
+import os, cv2
 import numpy as np
 
 absFilePath = os.path.abspath(__file__)

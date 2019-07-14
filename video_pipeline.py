@@ -13,6 +13,8 @@ from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFra
 from rekognition.pipeline.similar_frames.comp_hist_kernel import CompHist
 from rekognition.pipeline.similar_frames.ssim_kernel import SSIM
 
+from rekognition.pipeline.face_age_gender.face_age_gender import FaceAgeGenderElem
+from rekognition.pipeline.face_age_gender.dex_age_gender import DEXAgeGenderKernel
 
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
@@ -58,12 +60,16 @@ face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 
 # face_recognizer = FaceRecognizerElem(ArcFaceRecognizer(fileDir + "/rekognition/model/arcface/classifiers/arcface_first_evals_scikit_aug.pkl"))
 face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/model/facenet/classifiers/facenet_first_evals_scikit_aug.pkl"))
+
+face_age_gender = FaceAgeGenderElem(DEXAgeGenderKernel())
+
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
                      simframes,
                      face_detector,
                      face_recognizer,
+                     face_age_gender,
                      output_hand
                      ])
 print(pipeline)
@@ -73,8 +79,8 @@ benchmark_boxes = fileDir + "test/videos/benchmark_boxes/" + filename_wo_ext + '
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 100, "preprocessors": [resizer]},
-              simframes: {"sim_threshold": 0.99, "max_jobs": 10},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0, "preprocessors": []},
+              simframes: {"sim_threshold": 0.995, "max_jobs": 10},
               face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
               face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.6},
               output_hand: {"output_name": out_name},

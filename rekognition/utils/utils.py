@@ -4,7 +4,7 @@ from . import visualization_utils_color as vis_util
 
 IOU_THRESHOLD = 0.5
 
-def extract_boxes(image, boxes):
+def extract_boxes(image, boxes, margin = 0):
 	height = image.shape[0]
 	width = image.shape[1]
 
@@ -18,15 +18,25 @@ def extract_boxes(image, boxes):
 			if box[i] > 1:
 				box[i] = 1.0
 
+		y1, x1, y2, x2 = box
+
 		# Normalized coordinates
 		if is_normalized(box):
-			p1 = (int(box[0] * height), int(box[1] * width))
-			p2 = (int(box[2] * height), int(box[3] * width))
-		else:
-			p1 = (int(box[0]), int(box[1]))
-			p2 = (int(box[2]), int(box[3]))
+			y1 *= height
+			x1 *= width
+			y2 *= height
+			x2 *= width
 
-		box_images.append(image[p1[0]:p2[0], p1[1]:p2[1]])
+		box_w = x2 - x1
+		box_h = y2 - y1
+
+		if margin:
+			y1 = max(int(y1 - margin * box_h), 0)
+			x1 = max(int(x1 - margin * box_w), 0)
+			y2 = min(int(y2 + margin * box_h), height - 1)
+			x2 = min(int(x2 + margin * box_w), width - 1)
+
+		box_images.append(image[int(y1):int(y2), int(x1):int(x2)])
 
 	return box_images
 
@@ -179,7 +189,7 @@ def draw_faces(image, face_boxes, face_names):
 			ymin, xmin, ymax, xmax = face_boxes[f]
 
 			if face_names:
-				name = face_names[f][0]
+				name = face_names[f]
 			else:
 				name = ""
 

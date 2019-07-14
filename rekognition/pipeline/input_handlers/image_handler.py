@@ -13,10 +13,6 @@ class ImagesReader:
 		return len(glob.glob(os.path.join(self.input_path, "*")))
 
 	def get_frames(self, num_of_frames=1):
-		images_data = []
-		images_names = []
-		old_counter = self._counter
-
 		# select the path
 		for file in glob.glob(os.path.join(self.input_path, "*")):
 			image = cv2.imread(file)

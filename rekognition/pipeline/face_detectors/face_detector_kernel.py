@@ -57,7 +57,6 @@ class FaceDetectorKernel(Kernel):
 			all_frames_face_boxes.append(frame_boxes)
 			all_frames_pts.append(frames_pts)
 
-
 		if benchmark:
 			end = time.time()
 			benchmark_data["Inference Time"] = end - start

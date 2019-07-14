@@ -25,8 +25,9 @@ class FaceRecognizerElem(PipelineElement):
 		frames_face_names = data.get_value("frames_face_names")
 
 		for (i, all_count) in traverse_group(len(frames_face_names), frames_group):
+			frame_names = frames_face_names[i]
+
 			for f, face in enumerate(json_objects[all_count]["faces"]):
-				frame_names = frames_face_names[i]
 				face["name"] = frame_names[f]
 
 		return json_objects
