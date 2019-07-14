@@ -8,7 +8,6 @@ class ImagesReader:
 		self.input_path = input_path
 		self._counter = 0
 		self._preprocessors = preprocessors
-		self.content_type = "image"
 
 	def frames_num(self):
 		return len(glob.glob(os.path.join(self.input_path, "*")))

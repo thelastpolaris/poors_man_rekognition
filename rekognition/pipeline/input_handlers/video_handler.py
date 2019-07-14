@@ -10,8 +10,6 @@ class VideoFrames:
 		self._preprocessors = preprocessors
 		self.input_path = input_path
 		self._frames_group = None
-		self.content_type = "video"
-
 
 	def frames_num(self, group_frames = True):
 		if group_frames and self.frames_group:

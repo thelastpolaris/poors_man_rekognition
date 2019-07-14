@@ -17,8 +17,8 @@ parentDir = os.path.dirname(fileDir)
 
 class FaceRecognizerKernel(Kernel):
 	def __init__(self):
-		super().__init__()
 		self._classifier = None
+		super().__init__()
 		self._normalize_image = True
 		self._preprocess = True
 		self._preprocess_batch = False
@@ -111,7 +111,7 @@ class FaceRecognizerKernel(Kernel):
 		print('\nSaved classifier model to file "%s"' % model_name)
 
 	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10,
-				face_tracking = True, distance_threshold = 0.5):
+				tracked_faces = None, distance_threshold = 0.5):
 		print("Recognizing the faces")
 		self.load_model()
 
@@ -185,36 +185,8 @@ class FaceRecognizerKernel(Kernel):
 			faces_names.append(frame_names)
 			faces_embs.append(frame_embs)
 
-		# Detect persons
-		if face_tracking and frames_reader.content_type == "video":
-			persons = [[(0, i)] for i in range(len(frames_face_boxes[0]))]
-			persons_frames = [[i, face_box, False] for i, face_box in enumerate(frames_face_boxes[0])]
-
-			for i, face_boxes in enumerate(frames_face_boxes):
-				if i == 0:
-					continue
-
-				for b, box in enumerate(face_boxes):
-					found = False
-					for p, person_f in enumerate(persons_frames):
-						if utils.IoU(person_f[1], box) > utils.IOU_THRESHOLD:
-							persons[person_f[0]].append((i, b))
-							persons_frames[p][1] = box
-							persons_frames[p][2] = True
-							found = True
-							break
-
-					if not found:
-						persons.append([(i, b)])
-						persons_frames.append([len(persons) - 1, box, True])
-
-				for p, person_f in enumerate(persons_frames):
-					if person_f[2]:
-						persons_frames[p][2] = False
-					else:
-						del persons_frames[p]
-
-			for person in persons:
+		if tracked_faces:
+			for person in tracked_faces:
 				p_names = []
 
 				for p_frames in person:
