@@ -100,6 +100,7 @@ class VideoHandlerElem(PipelineElement):
 	def __init__(self):
 		super().__init__()
 		self.input_path = None
+		self._max_frames = 0
 
 	def run(self, data, input_path, benchmark = False, max_frames = 0, preprocessors = None):
 		self.input_path = input_path

@@ -21,6 +21,7 @@ class ArcFaceRecognizer(FaceRecognizerKernel):
 		self._model = None
 		self._normalize_image = False
 		self._preprocess_batch = True
+		self._image_size = 112
 
 	def load_model(self):
 		self._model = FaceModel(self._arcface_model)

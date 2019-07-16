@@ -21,3 +21,4 @@
 # Allow
 !/resources/static/*.png
 *.hdf5
+*.t7

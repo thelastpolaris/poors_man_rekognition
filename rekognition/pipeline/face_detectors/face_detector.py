@@ -6,19 +6,45 @@ from ..input_handlers.video_handler import VideoFrames
 
 from ..input_handlers.image_handler import ImageHandlerElem
 
+import pickle
+import os
+
 class FaceDetectorElem(PipelineElement):
 	def __init__(self, kernel):
 		super().__init__(kernel)
 
-	def run(self, data, benchmark=False, benchmark_boxes = None, min_score = 0.7, face_tracking = True):
+	def run(self, data, benchmark=False, benchmark_boxes = None, min_score = 0.7, face_tracking = True, serialize_dir = ""):
+		benchmark_data = {}
 		frames_reader = data.get_value("frames_reader")
 
-		frames_face_boxes, frames_pts, benchmark_data = self.kernel.run(frames_reader, benchmark, min_score)
+		face_boxes_file = os.path.join(serialize_dir, "frames_face_boxes.pkl")
+		frames_pts_file = os.path.join(serialize_dir, "frames_pts.pkl")
+
+		if serialize_dir and os.path.isfile(face_boxes_file) and os.path.isfile(frames_pts_file):
+			with open(face_boxes_file, 'rb') as f:
+				frames_face_boxes = pickle.load(f)
+
+			with open(frames_pts_file, 'rb') as f:
+				frames_pts = pickle.load(f)
+		else:
+			frames_face_boxes, frames_pts, benchmark_data = self.kernel.run(frames_reader, benchmark, min_score)
+
+			if serialize_dir:
+				if not os.path.isfile(face_boxes_file):
+					with open(face_boxes_file, 'wb') as f:
+						pickle.dump(frames_face_boxes, f)
+
+				if not os.path.isfile(frames_pts_file):
+					with open(frames_pts_file, 'wb') as f:
+						pickle.dump(frames_pts, f)
+
 		data.add_value("frames_face_boxes", frames_face_boxes)
 		data.add_value("frames_pts", frames_pts)
 
 		if face_tracking and type(frames_reader) == VideoFrames:
-			data.add_value("tracked_faces", self.face_tracking(frames_face_boxes))
+			tracked_faces = self.face_tracking(frames_face_boxes)
+
+			data.add_value("tracked_faces", tracked_faces)
 
 		if benchmark:
 			self.benchmark(data, benchmark_data, benchmark_boxes)

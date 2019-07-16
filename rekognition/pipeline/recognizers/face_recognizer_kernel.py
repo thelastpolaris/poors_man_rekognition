@@ -10,6 +10,8 @@ import time
 # import faiss
 from collections import Counter
 import math
+import cv2
+import scipy
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -22,6 +24,8 @@ class FaceRecognizerKernel(Kernel):
 		self._normalize_image = True
 		self._preprocess = True
 		self._preprocess_batch = False
+		self._margin = 0
+		self._embedding_size = 512
 
 	@abc.abstractmethod
 	def load_model(self):
@@ -62,6 +66,12 @@ class FaceRecognizerKernel(Kernel):
 
 				paths_batch = faces[start_index:end_index]
 				images = facenet.load_data(paths_batch, False, False, image_size, self._normalize_image)
+
+				if not self._normalize_image:
+					# Strip off the fractional part
+					images = images.astype(np.int)
+					# back to float32
+					images = images.astype(np.float32)
 
 				if self._preprocess_batch:
 					images = self.preprocess_batch(images)
@@ -111,9 +121,16 @@ class FaceRecognizerKernel(Kernel):
 		print('\nSaved classifier model to file "%s"' % model_name)
 
 	def predict(self, connection, frames_face_boxes, frames_reader, benchmark: bool, backend="FAISS", n_ngbr = 10,
-				tracked_faces = None, distance_threshold = 0.5):
+				tracked_faces = None, distance_threshold = 0.5, serialize_dir = ""):
 		print("Recognizing the faces")
-		self.load_model()
+		face_embs_file = os.path.join(serialize_dir, "frames_face_embs.pkl")
+
+		ser_faces_embs = []
+		if serialize_dir and os.path.isfile(face_embs_file):
+			with open(os.path.join(serialize_dir, face_embs_file), 'rb') as f:
+				ser_faces_embs = pickle.load(f)
+		else:
+			self.load_model()
 
 		benchmark_data = None
 		if benchmark:
@@ -147,9 +164,12 @@ class FaceRecognizerKernel(Kernel):
 			frame_embs = []
 
 			if len(boxes):
-				faces = utils.extract_boxes(frames_data, boxes)
+				faces = utils.extract_boxes(frames_data, boxes, self._margin)
 
-				emb_array = self.process_faces(faces)
+				if serialize_dir and ser_faces_embs:
+					emb_array = ser_faces_embs[i]
+				else:
+					emb_array = self.process_faces(faces)
 
 				if len(faces):
 					if backend is "SciKit":
@@ -163,13 +183,14 @@ class FaceRecognizerKernel(Kernel):
 						# Update names according to distance threshold
 						for count, index in enumerate(indices[f]):
 							l = labels[index]
-							if distances[f][count] > distance_threshold:
-								l = -1
+							distance = distances[f][count]
+							if distance_threshold:
+								if distance > distance_threshold:
+									l = -1
 
 							classes.append(l)
 
 						classes = np.array(classes)
-
 						label = Counter(classes).most_common(1)[0][0]
 
 						if label != -1:
@@ -184,6 +205,10 @@ class FaceRecognizerKernel(Kernel):
 			bar.next()
 			faces_names.append(frame_names)
 			faces_embs.append(frame_embs)
+
+		if serialize_dir and not ser_faces_embs:
+			with open(face_embs_file, 'wb') as f:
+				pickle.dump(faces_embs, f)
 
 		if tracked_faces:
 			for person in tracked_faces:

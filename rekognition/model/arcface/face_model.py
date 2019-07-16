@@ -50,13 +50,13 @@ class FaceModel:
     if len(nimg.shape) == 4:  # Batch preprocessing
       ret_batch = []
       for i in range(len(nimg)):
-        # batch_img = cv2.cvtColor(nimg[i], cv2.COLOR_BGR2RGB)
-        batch_img = np.transpose(nimg[i], (2,0,1))
+        _img = cv2.cvtColor(nimg[i], cv2.COLOR_BGR2RGB)
+        batch_img = np.transpose(_img, (2,0,1))
 
         ret_batch.append(batch_img)
       aligned = np.array(ret_batch)
     else:
-      # nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
+      nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
       aligned = np.transpose(nimg, (2,0,1))
     return aligned
 

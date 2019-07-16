@@ -13,9 +13,6 @@ from rekognition.pipeline.similar_frames.similar_frames_finder import SimilarFra
 from rekognition.pipeline.similar_frames.comp_hist_kernel import CompHist
 from rekognition.pipeline.similar_frames.ssim_kernel import SSIM
 
-from rekognition.pipeline.face_age_gender.face_age_gender import FaceAgeGenderElem
-from rekognition.pipeline.face_age_gender.dex_age_gender import DEXAgeGenderKernel
-
 from rekognition.pipeline.face_detectors.face_detector import FaceDetectorElem
 from rekognition.pipeline.face_detectors.mobilenets_ssd import MobileNetsSSDFaceDetector
 from rekognition.pipeline.face_detectors.yolov3_face_detector import YOLOv3FaceDetector
@@ -25,6 +22,12 @@ from rekognition.pipeline.face_detectors.dsfd import DSFDFaceDetector
 from rekognition.pipeline.recognizers.face_recognizer import FaceRecognizerElem
 from rekognition.pipeline.recognizers.facenet_recognizer import FacenetRecognizer
 from rekognition.pipeline.recognizers.arcface_recognizer import ArcFaceRecognizer
+
+from rekognition.pipeline.face_age_gender.face_age_gender import FaceAgeGenderElem
+from rekognition.pipeline.face_age_gender.dex_age_gender import DEXAgeGenderKernel
+
+from rekognition.pipeline.face_expression.face_expression import FaceExpressionRecognizer
+from rekognition.pipeline.face_expression.cnn_pytorch import CNNPytorchKernel
 
 # Output
 from rekognition.pipeline.output_handlers.videooutput_handler import VideoOutputHandler
@@ -63,25 +66,34 @@ face_recognizer = FaceRecognizerElem(FacenetRecognizer(fileDir + "/rekognition/m
 
 face_age_gender = FaceAgeGenderElem(DEXAgeGenderKernel())
 
+face_expression = FaceExpressionRecognizer(CNNPytorchKernel())
+
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
                      simframes,
                      face_detector,
                      face_recognizer,
-                     face_age_gender,
+                     # face_age_gender,
+                     face_expression,
                      output_hand
                      ])
 print(pipeline)
 
 # Benchmarks stuff
-benchmark_boxes = fileDir + "test/videos/benchmark_boxes/" + filename_wo_ext + '.xml'
+benchmark_boxes = os.path.join(fileDir, "test/videos/benchmark_boxes/", filename_wo_ext + '.xml')
+serialize_dir = os.path.join(fileDir, "test/videos/serialized/", filename_wo_ext)
+
+if not os.path.exists(serialize_dir):
+    os.mkdir(serialize_dir)
+
+# serialize_dir = ""
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 0, "preprocessors": []},
-              simframes: {"sim_threshold": 0.995, "max_jobs": 10},
-              face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes},
-              face_recognizer: {"backend":"SciKit", "n_ngbr": 10, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.6},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500, "preprocessors": [resizer]},
+              simframes: {"sim_threshold": 0.99, "max_jobs": 10, "serialize_dir": serialize_dir},
+              face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes, "face_tracking": True, "serialize_dir": serialize_dir},
+              face_recognizer: {"backend":"SciKit", "n_ngbr": 6, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.7, "serialize_dir": serialize_dir},
               output_hand: {"output_name": out_name},
               pipeline: {"out_name": "output/" + out_name}}, benchmark=True)

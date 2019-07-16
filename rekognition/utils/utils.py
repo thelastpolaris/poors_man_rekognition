@@ -191,15 +191,18 @@ def draw_faces(image, face_boxes, face_names):
 			if face_names:
 				name = face_names[f]
 			else:
-				name = ""
+				name = []
 
 			vis_util.draw_bounding_box_on_image_array(image,
 													  ymin,
 													  xmin,
 													  ymax,
 													  xmax,
-													  display_str_list=[name],
+													  display_str_list=name,
 													  use_normalized_coordinates=is_normalized(
 														  face_boxes[0]))
 
 	return image
+
+def chunks(l, n):
+	return [l[i:i + n] for i in range(0, len(l), n)]

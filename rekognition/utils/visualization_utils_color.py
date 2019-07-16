@@ -158,7 +158,7 @@ def draw_bounding_box_on_image(image,
   draw.line([(left, top), (left, bottom), (right, bottom),
              (right, top), (left, top)], width=thickness, fill=color)
   try:
-    font_size = im_width/25
+    font_size = im_width/30
     if font_size < 10:
       font_size = 10
     font = ImageFont.truetype('arial.ttf', int(font_size))

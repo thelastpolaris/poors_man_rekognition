@@ -24,6 +24,7 @@ class FacenetRecognizer(FaceRecognizerKernel):
 		self._facenet_model = parentDir + "/../model/facenet/facenet_20180408.pb"
 		self._classifier = facenet_classifier
 		self._image_size = 160
+		self._margin = 0.1
 
 	def load_model(self):
 		self._graph = tf.Graph()
