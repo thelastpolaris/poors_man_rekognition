@@ -1,6 +1,5 @@
 import numpy as np
 import sys, os
-import tensorflow as tf
 from .face_detector_kernel import FaceDetectorKernel
 from ...utils import label_map_util
 
@@ -27,6 +26,11 @@ class MobileNetsSSDFaceDetector(FaceDetectorKernel):
 		self._label_map = label_map_util.load_labelmap(self._labels_path)
 		self._categories = label_map_util.convert_label_map_to_categories(self._label_map, max_num_classes=self._classes_num, use_display_name=True)
 		self._category_index = label_map_util.create_category_index(self._categories)
+			# self._config.gpu_options.allow_growth = True
+			# self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
+
+	def load_model(self):
+		import tensorflow as tf
 
 		self._detection_graph = tf.Graph()
 		self._sess = None
@@ -41,10 +45,7 @@ class MobileNetsSSDFaceDetector(FaceDetectorKernel):
 
 		with self._detection_graph.as_default():
 			self._config = tf.ConfigProto()
-			# self._config.gpu_options.allow_growth = True
-			# self._config.gpu_options.per_process_gpu_memory_fraction = 0.5
 
-	def load_model(self):
 		self._sess = tf.Session(graph=self._detection_graph, config=self._config)
 
 	def inference(self, image):

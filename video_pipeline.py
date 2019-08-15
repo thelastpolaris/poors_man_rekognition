@@ -31,6 +31,7 @@ from rekognition.pipeline.face_expression.cnn_pytorch import CNNPytorchKernel
 
 # Output
 from rekognition.pipeline.output_handlers.videooutput_handler import VideoOutputHandler
+import json
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(absFilePath) + "/"
@@ -45,6 +46,8 @@ input_path = args["input"]
 filename = os.path.basename(input_path)
 filename_wo_ext = os.path.splitext(filename)[0]
 
+parameters = args[""]
+
 resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
@@ -56,8 +59,8 @@ simframes = SimilarFramesFinder(CompHist())
 # simframes = SimilarFramesFinder(SSIM())
 
 # Face Detectors
-# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
-face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
@@ -71,13 +74,13 @@ face_expression = FaceExpressionRecognizer(CNNPytorchKernel())
 output_hand = VideoOutputHandler()
 
 pipeline = Pipeline([datahandler,
-                     simframes,
-                     face_detector,
-                     face_recognizer,
-                     # face_age_gender,
-                     face_expression,
-                     output_hand
-                     ])
+					 simframes,
+					 face_detector,
+					 face_recognizer,
+					 # face_age_gender,
+					 face_expression,
+					 output_hand
+					 ])
 print(pipeline)
 
 # Benchmarks stuff
@@ -85,15 +88,17 @@ benchmark_boxes = os.path.join(fileDir, "test/videos/benchmark_boxes/", filename
 serialize_dir = os.path.join(fileDir, "test/videos/serialized/", filename_wo_ext)
 
 if not os.path.exists(serialize_dir):
-    os.mkdir(serialize_dir)
+	os.mkdir(serialize_dir)
+
+serialize_dir = None
 
 # serialize_dir = ""
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
 pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500, "preprocessors": [resizer]},
-              simframes: {"sim_threshold": 0.99, "max_jobs": 10, "serialize_dir": serialize_dir},
-              face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes, "face_tracking": True, "serialize_dir": serialize_dir},
-              face_recognizer: {"backend":"SciKit", "n_ngbr": 6, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.7, "serialize_dir": serialize_dir},
-              output_hand: {"output_name": out_name},
-              pipeline: {"out_name": "output/" + out_name}}, benchmark=True)
+			  simframes: {"sim_threshold": 0.99, "max_jobs": 10},
+			  face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes, "face_tracking": True},
+			  face_recognizer: {"backend":"SciKit", "n_ngbr": 6, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.7},
+			  output_hand: {"output_name": out_name},
+			  pipeline: {"out_name": "output/" + out_name}}, benchmark=True)

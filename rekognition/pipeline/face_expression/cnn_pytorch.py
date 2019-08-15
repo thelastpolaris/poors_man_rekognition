@@ -5,16 +5,12 @@ from .face_expression_kernel import FaceExpressionKernel
 import numpy as np
 from PIL import Image
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
 import os
 
 from ...model.facial_expression.cnn_pytorch import transforms
 from ...model.facial_expression.cnn_pytorch.vgg import VGG
-from skimage import io
 from skimage.transform import resize
-import cv2
 
 absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
@@ -37,7 +33,6 @@ class CNNPytorchKernel(FaceExpressionKernel):
 			transforms.TenCrop(cut_size),
 			transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
 		])
-
 
 	def load_model(self):
 		self._model = VGG('VGG19')
