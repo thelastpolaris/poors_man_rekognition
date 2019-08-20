@@ -19,9 +19,10 @@ class FaceExpressionRecognizer(PipelineElement):
 	def requires(self):
 		return FaceDetectorElem
 
-	def get_JSON(self, data, json_objects):
+	def get_JSON(self, data, json_holder):
 		frames_group = data.get_value("frames_group")
 		face_expressions = data.get_value("frames_face_expressions")
+		json_objects = json_holder["frames"]
 
 		for (i, all_count) in traverse_group(len(face_expressions), frames_group):
 			face_exp = face_expressions[i]
@@ -29,6 +30,7 @@ class FaceExpressionRecognizer(PipelineElement):
 			for f, face in enumerate(json_objects[all_count]["faces"]):
 				face["expression"] = face_exp[f]
 
+		json_holder["frames"] = json_objects
 		return json_objects
 
 	def benchmark(self, data, benchmark_data):

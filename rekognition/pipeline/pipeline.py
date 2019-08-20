@@ -77,12 +77,12 @@ class Pipeline:
 		return json_data
 
 	def get_JSON(self):
-		json_objects = []
+		json_holder = {}
 
 		for elem in self.__elements:
-			json_objects = elem.get_JSON(self.__data_holder, json_objects)
+			json_holder = elem.get_JSON(self.__data_holder, json_holder)
 
-		return json_objects
+		return json_holder
 
 	def save_JSON(self, json_objects, params_dict):
 		filename = "{}.{}".format(params_dict[self]["out_name"], "json")

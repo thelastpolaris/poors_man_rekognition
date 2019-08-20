@@ -21,10 +21,12 @@ class FaceAgeGenderElem(PipelineElement):
 	def requires(self):
 		return FaceDetectorElem
 
-	def get_JSON(self, data, json_objects):
+	def get_JSON(self, data, json_holder):
 		frames_group = data.get_value("frames_group")
 		frames_face_age = data.get_value("frames_face_age")
 		frames_faces_gender = data.get_value("frames_faces_gender")
+
+		json_objects = json_holder["frames"]
 
 		for (i, all_count) in traverse_group(len(frames_face_age), frames_group):
 			frame_age = frames_face_age[i]
@@ -33,6 +35,8 @@ class FaceAgeGenderElem(PipelineElement):
 			for f, face in enumerate(json_objects[all_count]["faces"]):
 				face["age"] = frame_age[f]
 				face["gender"] = frame_genders[f]
+
+		json_holder["frames"] = json_objects
 
 		return json_objects
 

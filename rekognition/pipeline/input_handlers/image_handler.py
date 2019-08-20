@@ -51,7 +51,7 @@ class ImageHandlerElem(PipelineElement):
 	def requires(self):
 		return None
 
-	def get_JSON(self, data, json_objects):
+	def get_JSON(self, data, json_holder):
 		json_objects = [] # reset list with JSON values
 		images_names = data.get_value("frames_pts")
 
@@ -61,4 +61,5 @@ class ImageHandlerElem(PipelineElement):
 				image["filename"] = name
 				json_objects.append(image)
 
-		return json_objects
+		json_holder["frames"] = json_objects
+		return json_holder

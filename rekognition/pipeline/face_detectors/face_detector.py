@@ -83,22 +83,24 @@ class FaceDetectorElem(PipelineElement):
 	def requires(self):
 		return VideoHandlerElem, ImageHandlerElem
 
-	def get_JSON(self, data, json_objects):
+	def get_JSON(self, data, json_holder):
 		frames_group = data.get_value("frames_group")
 		frames_face_boxes = data.get_value("frames_face_boxes")
+		json_objects = json_holder["frames"]
 
 		for (i, all_count) in utils.traverse_group(len(frames_face_boxes), frames_group):
 			faces = []
 
 			for bb in frames_face_boxes[i]:
 				face = dict()
-				face["bounding_box"] = {"left": float(bb[0]), "right": float(bb[1]), "top": float(bb[2]),
-										"bottom": float(bb[3])}
+				face["bounding_box"] = {"top": float(bb[0]), "left": float(bb[1]), "bottom": float(bb[2]),
+										"right": float(bb[3])}
 				faces.append(face)
 
 			json_objects[all_count]["faces"] = faces
 
-		return json_objects
+		json_holder["frames"] = json_objects
+		return json_holder
 
 	def benchmark(self, data, benchmark_data, benchmark_boxes):
 		for k, v in benchmark_data.items():

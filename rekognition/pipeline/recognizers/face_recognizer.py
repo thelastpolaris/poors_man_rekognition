@@ -22,17 +22,18 @@ class FaceRecognizerElem(PipelineElement):
 	def requires(self):
 		return FaceDetectorElem
 
-	def get_JSON(self, data, json_objects):
+	def get_JSON(self, data, json_holder):
 		frames_group = data.get_value("frames_group")
 		frames_face_names = data.get_value("frames_face_names")
+		json_objects = json_holder["frames"]
 
 		for (i, all_count) in traverse_group(len(frames_face_names), frames_group):
 			frame_names = frames_face_names[i]
 
 			for f, face in enumerate(json_objects[all_count]["faces"]):
 				face["name"] = frame_names[f]
-
-		return json_objects
+		json_holder["frames"] = json_objects
+		return json_holder
 
 	def benchmark(self, data, benchmark_data, benchmark_boxes):
 		for k, v in benchmark_data.items():
