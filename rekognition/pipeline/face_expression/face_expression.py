@@ -31,7 +31,7 @@ class FaceExpressionRecognizer(PipelineElement):
 				face["expression"] = face_exp[f]
 
 		json_holder["frames"] = json_objects
-		return json_objects
+		return json_holder
 
 	def benchmark(self, data, benchmark_data):
 		for k, v in benchmark_data.items():

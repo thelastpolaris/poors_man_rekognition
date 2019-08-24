@@ -45,6 +45,8 @@ class VideoOutputHandler(OutputHandler):
 				stream.height = h
 				stream.width = w
 
+			counter = i
+
 			if frames_group:
 				if i < group:
 					counter = group_i
@@ -56,43 +58,43 @@ class VideoOutputHandler(OutputHandler):
 					group += new_group
 					counter = group_i
 
-				face_boxes = frames_face_boxes[counter] if frames_face_boxes else None
-				draw_strings = [[]] * len(face_boxes)
+			face_boxes = frames_face_boxes[counter] if frames_face_boxes else None
+			draw_strings = [[]] * len(face_boxes)
 
-				# if frames_face_names:
-				# 	names = [name[0] for name in frames_face_names[counter]]
+			# if frames_face_names:
+			# 	names = [name[0] for name in frames_face_names[counter]]
 
-				# final_string = names if names else [""] * len(face_boxes)
+			# final_string = names if names else [""] * len(face_boxes)
 
-				for a in range(len(draw_strings)):
-					final_string = []
-					age_gender = ""
-					if frames_face_age:
-						age = str(frames_face_age[counter][a])
-						age_gender = age
+			for a in range(len(draw_strings)):
+				final_string = []
+				age_gender = ""
+				if frames_face_age:
+					age = str(frames_face_age[counter][a])
+					age_gender = age
 
-					if frames_faces_gender:
-						gender = frames_faces_gender[counter][a]
-						age_gender = "{}, {}".format(age_gender, gender)
+				if frames_faces_gender:
+					gender = frames_faces_gender[counter][a]
+					age_gender = "{}, {}".format(age_gender, gender)
 
-					if age_gender:
-						final_string.append(age_gender)
+				if age_gender:
+					final_string.append(age_gender)
 
-						# final_string[a] = final_string[a] + " {}, {}".format(age, gender)
+					# final_string[a] = final_string[a] + " {}, {}".format(age, gender)
 
-					if frames_face_exps:
-						expression = frames_face_exps[counter][a]
-						final_string.append(expression)
+				if frames_face_exps:
+					expression = frames_face_exps[counter][a]
+					final_string.append(expression)
 
-						# final_string[a] = final_string[a] + ", {}".format(expression)
+					# final_string[a] = final_string[a] + ", {}".format(expression)
 
-					if frames_face_names:
-						name = frames_face_names[counter][a][0]
-						final_string.append(name)
+				if frames_face_names:
+					name = frames_face_names[counter][a][0]
+					final_string.append(name)
 
-					draw_strings[a] = final_string
+				draw_strings[a] = final_string
 
-				image = utils.draw_faces(image, face_boxes, draw_strings)
+			image = utils.draw_faces(image, face_boxes, draw_strings)
 
 			frame = av.VideoFrame.from_ndarray(image, format='rgb24')
 			for packet in stream.encode(frame):

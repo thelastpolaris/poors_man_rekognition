@@ -46,8 +46,6 @@ input_path = args["input"]
 filename = os.path.basename(input_path)
 filename_wo_ext = os.path.splitext(filename)[0]
 
-parameters = args[""]
-
 resizer = ResizeImage(640, 480)
 invert = InvertColors()
 lambd = Lambda(lambda image: image)
@@ -59,8 +57,8 @@ simframes = SimilarFramesFinder(CompHist())
 # simframes = SimilarFramesFinder(SSIM())
 
 # Face Detectors
-face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
-# face_detector = FaceDetectorElem(YOLOv3FaceDetector())
+# face_detector = FaceDetectorElem(MobileNetsSSDFaceDetector())
+face_detector = FaceDetectorElem(YOLOv3FaceDetector())
 # face_detector = FaceDetectorElem(DSFDFaceDetector())
 # face_detector = FaceDetectorElem(MTCNNFaceDetector())
 
@@ -76,8 +74,8 @@ output_hand = VideoOutputHandler()
 pipeline = Pipeline([datahandler,
 					 simframes,
 					 face_detector,
-					 face_recognizer,
-					 # face_age_gender,
+					 # face_recognizer,
+					 face_age_gender,
 					 face_expression,
 					 output_hand
 					 ])
@@ -96,7 +94,7 @@ serialize_dir = None
 # benchmark_boxes = None
 out_name = "{}_{}_{}".format(filename_wo_ext, face_detector, face_recognizer)
 
-pipeline.run({datahandler: {"input_path" : input_path, "max_frames" : 500, "preprocessors": [resizer]},
+pipeline.run({datahandler: {"input_path" : input_path, "max_frames": 100, "preprocessors": [resizer]},
 			  simframes: {"sim_threshold": 0.99, "max_jobs": 10},
 			  face_detector: {"min_score": 0.6, "benchmark_boxes": benchmark_boxes, "face_tracking": True},
 			  face_recognizer: {"backend":"SciKit", "n_ngbr": 6, "benchmark_boxes": benchmark_boxes, "distance_threshold": 0.7},

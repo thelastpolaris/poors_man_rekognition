@@ -102,15 +102,18 @@ class VideoHandlerElem(PipelineElement):
 		self.input_path = None
 		self._max_frames = 0
 		self._time_base = None
+		self._fps = None
+
 
 	def run(self, data, input_path, benchmark = False, max_frames = 0, preprocessors = None):
 		self.input_path = input_path
 		self._max_frames = max_frames
 
 		container = av.open(self.input_path)
-		# Get video stream
+		# Get video  stream
 		stream = container.streams.video[0]
 		self._time_base = stream.time_base
+		self._fps = stream.average_rate
 
 		data.add_value("frames_reader", VideoFrames(container, stream, preprocessors, self._max_frames, self.input_path))
 
@@ -128,6 +131,7 @@ class VideoHandlerElem(PipelineElement):
 				json_objects.append(frame)
 
 			json_holder["time_base"] = self._time_base.denominator
+			json_holder["fps"] = float(self._fps)
 
 		json_holder["frames"] = json_objects
 		return json_holder
