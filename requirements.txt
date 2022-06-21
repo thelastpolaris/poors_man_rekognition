@@ -3,7 +3,7 @@ progress==1.5
 torchvision==0.2.2.post3
 easydict==1.9
 matplotlib==3.0.3
-numpy==1.16.4
+numpy==1.22.0
 torch==1.0.1.post2
 six==1.11.0
 opencv_python==4.0.0.21
